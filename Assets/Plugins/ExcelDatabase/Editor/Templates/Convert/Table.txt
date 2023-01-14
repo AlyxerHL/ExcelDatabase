@@ -1,0 +1,22 @@
+using ExcelDatabase.Scripts;
+using Newtonsoft.Json;
+
+namespace ExcelDatabase
+{
+    public static partial class Tb
+    {
+        private static Table<$TABLE$_Type> $TABLE$_Instance;
+
+        public static Table<$TABLE$_Type> $TABLE$
+        {
+            get
+            {
+                $TABLE$_Instance ??= new Table<$Table$_Type>("$TABLE$");
+                return $TABLE$_Instance;
+            }
+        }
+
+        public class $TABLE$_Type : TableType
+        {#COL#        }
+    }
+}
