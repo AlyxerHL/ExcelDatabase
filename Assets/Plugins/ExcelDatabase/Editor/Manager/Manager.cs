@@ -2,21 +2,21 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace ExcelDatabase.Editor.Windows
+namespace ExcelDatabase.Editor.Manager
 {
-    public class TableList : EditorWindow
+    public class Manager : EditorWindow
     {
-        [MenuItem("Window/UI Toolkit/TableList")]
+        [MenuItem("Window/UI Toolkit/Manager")]
         public static void ShowExample()
         {
-            TableList wnd = GetWindow<TableList>();
-            wnd.titleContent = new GUIContent("TableList");
+            var window = GetWindow<Manager>();
+            window.titleContent = new GUIContent("Excel Database Manager");
         }
 
         public void CreateGUI()
         {
             // Each editor window contains a root VisualElement object
-            VisualElement root = rootVisualElement;
+            var root = rootVisualElement;
 
             // VisualElements objects can contain other VisualElement following a tree hierarchy.
             VisualElement label = new Label("Hello World! From C#");
@@ -25,14 +25,14 @@ namespace ExcelDatabase.Editor.Windows
             // Import UXML
             var visualTree =
                 AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                    "Assets/Plugins/ExcelDatabase/Editor/Windows/TableList.uxml");
+                    "Assets/Plugins/ExcelDatabase/Editor/Manager/Manager.uxml");
             VisualElement labelFromUXML = visualTree.Instantiate();
             root.Add(labelFromUXML);
 
             // A stylesheet can be added to a VisualElement.
             // The style will be applied to the VisualElement and all of its children.
             var styleSheet =
-                AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/Plugins/ExcelDatabase/Editor/Windows/TableList.uss");
+                AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/Plugins/ExcelDatabase/Editor/Manager/Manager.uss");
             VisualElement labelWithStyle = new Label("Hello World! With Style");
             labelWithStyle.styleSheets.Add(styleSheet);
             root.Add(labelWithStyle);
