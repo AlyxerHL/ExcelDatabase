@@ -1,6 +1,6 @@
 namespace ExcelDatabase
 {
-    public static partial class Enum
+    public static partial class Em
     {
         public static class $TABLE$
         {#ENUM#        }
