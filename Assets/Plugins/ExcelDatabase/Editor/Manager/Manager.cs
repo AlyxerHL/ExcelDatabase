@@ -6,8 +6,8 @@ namespace ExcelDatabase.Editor.Manager
 {
     public class Manager : EditorWindow
     {
-        [MenuItem("Window/UI Toolkit/Manager")]
-        public static void ShowExample()
+        [MenuItem("Tools/Excel Database/Show Manager")]
+        public static void ShowWindow()
         {
             var window = GetWindow<Manager>();
             window.titleContent = new GUIContent("Excel Database Manager");
@@ -26,8 +26,8 @@ namespace ExcelDatabase.Editor.Manager
             var visualTree =
                 AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                     "Assets/Plugins/ExcelDatabase/Editor/Manager/Manager.uxml");
-            VisualElement labelFromUXML = visualTree.Instantiate();
-            root.Add(labelFromUXML);
+            VisualElement labelFromUxml = visualTree.Instantiate();
+            root.Add(labelFromUxml);
 
             // A stylesheet can be added to a VisualElement.
             // The style will be applied to the VisualElement and all of its children.
