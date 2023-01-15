@@ -32,9 +32,9 @@ namespace ExcelDatabase.Editor.Parser
             _tableName = tableName;
         }
 
-        public void Parse()
+        public string[] Parse()
         {
-            ParseRows(ValidateRows());
+            return ParseRows(ValidateRows());
         }
 
         private IEnumerable<Row> ValidateRows()
@@ -77,7 +77,7 @@ namespace ExcelDatabase.Editor.Parser
             }
         }
 
-        private void ParseRows(IEnumerable<Row> rows)
+        private string[] ParseRows(IEnumerable<Row> rows)
         {
             var tableTemplate = File.ReadAllText(TablePath);
             _builder.Append(tableTemplate).Replace(TableVariable, _tableName);
@@ -99,7 +99,16 @@ namespace ExcelDatabase.Editor.Parser
 
             _builder.Replace(RowTemplate, string.Empty);
             _builder.Replace(GroupTemplate, string.Empty);
-            File.WriteAllText(Config.EnumDistPath(_tableName), _builder.ToString());
+
+            var distDirectory = $"{Config.Root}/Dist";
+            if (!Directory.Exists(distDirectory))
+            {
+                Directory.CreateDirectory(distDirectory);
+            }
+
+            var distPath = $"{distDirectory}/Em.{_tableName}.cs";
+            File.WriteAllText(distPath, _builder.ToString());
+            return new[] { distPath };
         }
 
         private readonly struct Row

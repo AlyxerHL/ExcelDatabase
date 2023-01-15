@@ -22,10 +22,5 @@ namespace ExcelDatabase.Editor.Tools
                 return _root;
             }
         }
-
-        public static string EnumDistPath(string tableName)
-        {
-            return $"{Root}/Dist/Em.{tableName}.cs";
-        }
     }
 }
