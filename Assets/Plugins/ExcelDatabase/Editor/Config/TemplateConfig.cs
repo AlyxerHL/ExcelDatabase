@@ -15,11 +15,9 @@ namespace ExcelDatabase.Editor.Config
         {
             public const string GroupTemplate = "#GROUP#";
             public const string RowTemplate = "#ROW#";
-
             public const string TableVariable = "$TABLE$";
             public const string GroupVariable = "$GROUP$";
             public const string RowVariable = "$ROW$";
-            public const string IndexVariable = "$INDEX$";
 
             public static string TablePath => $"{Path}/Table.txt";
             public static string EnumPath => $"{Path}/Enum.txt";
