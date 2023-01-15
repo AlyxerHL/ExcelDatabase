@@ -3,6 +3,9 @@ using System.IO;
 using System.Text;
 using ExcelDatabase.Editor.Tools;
 using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
+using UnityEditor;
+using UnityEngine;
 
 namespace ExcelDatabase.Editor.Parser
 {
@@ -26,10 +29,12 @@ namespace ExcelDatabase.Editor.Parser
         private readonly ISheet _sheet;
         private readonly StringBuilder _builder = new();
 
-        public EnumParser(IWorkbook workbook, string tableName)
+        public EnumParser(Object file)
         {
-            _sheet = workbook.GetSheetAt(0);
-            _tableName = tableName;
+            var path = AssetDatabase.GetAssetPath(file);
+            using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
+            _sheet = new XSSFWorkbook(stream).GetSheetAt(0);
+            _tableName = file.name;
         }
 
         public string[] Parse()

@@ -51,15 +51,12 @@ namespace ExcelDatabase.Editor.Manager
         {
             foreach (var file in Selection.objects.Where(IsExcelFile))
             {
-                var path = AssetDatabase.GetAssetPath(file);
-                using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
-                var workbook = new XSSFWorkbook(stream);
-
                 try
                 {
-                    var enumParser = new EnumParser(workbook, file.name);
+                    var enumParser = new EnumParser(file);
                     var distPaths = enumParser.Parse();
-                    var tableData = new TableData(TableType.Enum, file.name, path, distPaths);
+                    var excelPath = AssetDatabase.GetAssetPath(file);
+                    var tableData = new TableData(TableType.Enum, file.name, excelPath, distPaths);
 
                     if (TableDataSet.Add(tableData))
                     {
