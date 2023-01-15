@@ -22,14 +22,12 @@ namespace ExcelDatabase.Editor.Parser
         private static readonly string GroupPath = $"{TemplatePath}/Group.txt";
         private static readonly string RowPath = $"{TemplatePath}/Row.txt";
 
-        private readonly StringBuilder _builder;
-        private readonly ISheet _sheet;
         private readonly string _tableName;
+        private readonly ISheet _sheet;
+        private readonly StringBuilder _builder = new();
 
         public EnumParser(IWorkbook workbook, string tableName)
         {
-            var tableTemplate = File.ReadAllText(TablePath);
-            _builder = new StringBuilder(tableTemplate).Replace(TableVariable, tableName);
             _sheet = workbook.GetSheetAt(0);
             _tableName = tableName;
         }
@@ -39,7 +37,7 @@ namespace ExcelDatabase.Editor.Parser
             ParseRows(ValidateRows());
         }
 
-        private IEnumerable<(string, string)> ValidateRows()
+        private IEnumerable<Row> ValidateRows()
         {
             var diffChecker = new HashSet<string>();
             for (var i = 1; i <= _sheet.LastRowNum; i++)
@@ -50,7 +48,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (groupValue == string.Empty)
                 {
-                    throw new InvalidTableException(_tableName, "Enum group is empty");
+                    break;
                 }
 
                 if (char.IsDigit(groupValue, 0))
@@ -75,30 +73,45 @@ namespace ExcelDatabase.Editor.Parser
                         $"Duplicate enum value '{enumValue}' in group {groupValue}");
                 }
 
-                yield return (groupValue, enumValue);
+                yield return new Row(groupValue, enumValue);
             }
         }
 
-        private void ParseRows(IEnumerable<(string, string)> rows)
+        private void ParseRows(IEnumerable<Row> rows)
         {
+            var tableTemplate = File.ReadAllText(TablePath);
+            _builder.Append(tableTemplate).Replace(TableVariable, _tableName);
             string prevGroupValue = null;
-            foreach (var (groupValue, enumValue) in rows)
+
+            foreach (var row in rows)
             {
-                if (prevGroupValue != groupValue)
+                if (prevGroupValue != row.Group)
                 {
-                    prevGroupValue = groupValue;
+                    prevGroupValue = row.Group;
                     _builder.Replace(RowTemplate, string.Empty);
                     var groupTemplate = File.ReadAllText(GroupPath);
-                    _builder.Replace(GroupTemplate, groupTemplate + GroupTemplate).Replace(GroupVariable, groupValue);
+                    _builder.Replace(GroupTemplate, groupTemplate + GroupTemplate).Replace(GroupVariable, row.Group);
                 }
 
                 var rowTemplate = File.ReadAllText(RowPath);
-                _builder.Replace(RowTemplate, rowTemplate + RowTemplate).Replace(RowVariable, enumValue);
+                _builder.Replace(RowTemplate, rowTemplate + RowTemplate).Replace(RowVariable, row.Enum);
             }
 
             _builder.Replace(RowTemplate, string.Empty);
             _builder.Replace(GroupTemplate, string.Empty);
-            File.WriteAllText($"{Config.Root}/Dist/Em.{_tableName}.cs", _builder.ToString());
+            File.WriteAllText(Config.EnumDistPath(_tableName), _builder.ToString());
+        }
+
+        private readonly struct Row
+        {
+            public readonly string Group;
+            public readonly string Enum;
+
+            public Row(string groupValue, string enumValue)
+            {
+                Group = groupValue;
+                Enum = enumValue;
+            }
         }
     }
 }
