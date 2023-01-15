@@ -3,11 +3,11 @@ using UnityEditor;
 
 namespace ExcelDatabase.Editor.Config
 {
-    public static partial class Config
+    public static class Config
     {
         private static string _root;
 
-        private static string Root
+        public static string Root
         {
             get
             {
