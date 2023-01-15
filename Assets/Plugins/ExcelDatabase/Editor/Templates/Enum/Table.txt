@@ -3,6 +3,6 @@ namespace ExcelDatabase
     public static partial class Em
     {
         public static class $TABLE$
-        {#ENUM#        }
+        {#GROUP#        }
     }
 }

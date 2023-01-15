@@ -13,11 +13,11 @@ namespace ExcelDatabase.Editor.Config
 
         public static class Enum
         {
-            public const string EnumTemplate = "#ENUM#";
+            public const string GroupTemplate = "#GROUP#";
             public const string RowTemplate = "#ROW#";
 
             public const string TableVariable = "$TABLE$";
-            public const string EnumVariable = "$ENUM$";
+            public const string GroupVariable = "$GROUP$";
             public const string RowVariable = "$ROW$";
             public const string IndexVariable = "$INDEX$";
 
