@@ -39,7 +39,7 @@ namespace ExcelDatabase.Editor.Parser
 
         public string[] Parse()
         {
-            ParseRows(ValidateRows());
+            BuildString(ValidateRows());
             return WriteScript();
         }
 
@@ -83,7 +83,7 @@ namespace ExcelDatabase.Editor.Parser
             }
         }
 
-        private void ParseRows(IEnumerable<Row> rows)
+        private void BuildString(IEnumerable<Row> rows)
         {
             var tableTemplate = File.ReadAllText(TablePath);
             _builder.Append(tableTemplate).Replace(TableVariable, _tableName);
