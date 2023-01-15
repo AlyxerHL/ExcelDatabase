@@ -58,19 +58,19 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (enumValue == string.Empty)
                 {
-                    throw new InvalidTableException(_tableName, $"Enum value in group {groupValue} is empty");
+                    throw new InvalidTableException(_tableName, $"Enum value in group '{groupValue}' is empty");
                 }
 
                 if (char.IsDigit(enumValue, 0))
                 {
                     throw new InvalidTableException(_tableName,
-                        $"Enum value '{enumValue}' in group {groupValue} starts with a number");
+                        $"Enum value '{enumValue}' in group '{groupValue}' starts with a number");
                 }
 
                 if (!diffChecker.Add(groupValue + enumValue))
                 {
                     throw new InvalidTableException(_tableName,
-                        $"Duplicate enum value '{enumValue}' in group {groupValue}");
+                        $"Duplicate enum value '{enumValue}' in group '{groupValue}'");
                 }
 
                 yield return new Row(groupValue, enumValue);
