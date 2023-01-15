@@ -1,5 +1,7 @@
 using System.IO;
+using System.Linq;
 using ExcelDatabase.Editor.Parser;
+using ExcelDatabase.Editor.Tools;
 using NPOI.XSSF.UserModel;
 using UnityEditor;
 using UnityEngine;
@@ -10,20 +12,39 @@ namespace ExcelDatabase.Editor.Manager
     public class Manager : EditorWindow
     {
         [MenuItem("Tools/Excel Database/Show Manager")]
-        private static void ShowWindow()
+        private static void ShowManager()
         {
             var window = GetWindow<Manager>();
             window.titleContent = new GUIContent("Excel Database Manager");
         }
 
-        [MenuItem("Tools/Excel Database/Parse Selection")]
-        private static void ParseSelection()
+        [MenuItem("Tools/Excel Database/Parse Enum")]
+        private static void ParseEnum()
         {
-            var file = Selection.objects[0];
-            using var stream = File.Open(AssetDatabase.GetAssetPath(file), FileMode.Open, FileAccess.Read);
-            var workbook = new XSSFWorkbook(stream);
-            var enumParser = new EnumParser(workbook, file.name);
-            enumParser.Parse();
+            foreach (var file in Selection.objects.Where(IsExcelFile))
+            {
+                var path = AssetDatabase.GetAssetPath(file);
+                using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
+                var workbook = new XSSFWorkbook(stream);
+
+                try
+                {
+                    var enumParser = new EnumParser(workbook, file.name);
+                    enumParser.Parse();
+                }
+                catch (InvalidTableException e)
+                {
+                    Debug.LogError(e.Message);
+                }
+            }
+
+            AssetDatabase.Refresh();
+        }
+
+        private static bool IsExcelFile(Object file)
+        {
+            var path = AssetDatabase.GetAssetPath(file);
+            return Path.GetExtension(path) == ".xlsx";
         }
 
         private void CreateGUI()
