@@ -3,27 +3,9 @@ using NPOI.SS.UserModel;
 
 namespace ExcelDatabase.Editor.Tools
 {
-    public class TableHandler
+    public static class TableUtility
     {
-        private readonly string[,] _table;
-
-        public TableHandler(IWorkbook workbook)
-        {
-            var sheet = workbook.GetSheetAt(0);
-            _table = new string[sheet.LastRowNum + 1, sheet.GetRow(0).LastCellNum + 1];
-
-            for (var i = 0; i < _table.GetLength(0); i++)
-            {
-                var row = sheet.GetRow(i);
-                for (var j = 0; j < _table.GetLength(1); j++)
-                {
-                    var cell = row.GetCell(j);
-                    _table[i, j] = GetCellValue(cell);
-                }
-            }
-        }
-
-        private static string GetCellValue(ICell cell)
+        public static string GetValue(this ICell cell)
         {
             var cellType = cell switch
             {
