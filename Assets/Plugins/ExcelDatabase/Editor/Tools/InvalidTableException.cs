@@ -1,6 +1,6 @@
 using System;
 
-namespace ExcelDatabase.Editor.Parser
+namespace ExcelDatabase.Editor.Tools
 {
     public class InvalidTableException : Exception
     {
