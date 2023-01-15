@@ -1,7 +1,6 @@
 using System.IO;
 using System.Linq;
 using ExcelDatabase.Editor.Parser;
-using ExcelDatabase.Editor.Tools;
 using NPOI.XSSF.UserModel;
 using UnityEditor;
 using UnityEngine;
@@ -32,7 +31,7 @@ namespace ExcelDatabase.Editor.Manager
                     var enumParser = new EnumParser(workbook, file.name);
                     enumParser.Parse();
                 }
-                catch (InvalidTableException e)
+                catch (System.Exception e)
                 {
                     Debug.LogError(e.Message);
                 }
