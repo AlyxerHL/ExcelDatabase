@@ -1,7 +1,7 @@
 using System.IO;
 using UnityEditor;
 
-namespace ExcelDatabase.Editor.Config
+namespace ExcelDatabase.Editor.Tools
 {
     public static class Config
     {

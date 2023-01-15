@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using ExcelDatabase.Editor.Config;
 using ExcelDatabase.Editor.Tools;
 using NPOI.SS.UserModel;
 
@@ -12,24 +11,35 @@ namespace ExcelDatabase.Editor.Parser
         private const int GroupColumn = 0;
         private const int EnumColumn = 1;
 
+        private const string GroupTemplate = "#GROUP#";
+        private const string RowTemplate = "#ROW#";
+        private const string TableVariable = "$TABLE$";
+        private const string GroupVariable = "$GROUP$";
+        private const string RowVariable = "$ROW$";
+
+        private static readonly string TemplatePath = $"{Config.Root}/Editor/Templates/Enum";
+        private static readonly string TablePath = $"{TemplatePath}/Table.txt";
+        private static readonly string GroupPath = $"{TemplatePath}/Group.txt";
+        private static readonly string RowPath = $"{TemplatePath}/Row.txt";
+
         private readonly StringBuilder _builder;
         private readonly ISheet _sheet;
         private readonly string _tableName;
 
         public EnumParser(IWorkbook workbook, string tableName)
         {
-            var tableTemplate = File.ReadAllText(TemplateConfig.Enum.TablePath);
-            _builder = new StringBuilder(tableTemplate).Replace(TemplateConfig.Enum.TableVariable, tableName);
+            var tableTemplate = File.ReadAllText(TablePath);
+            _builder = new StringBuilder(tableTemplate).Replace(TableVariable, tableName);
             _sheet = workbook.GetSheetAt(0);
             _tableName = tableName;
         }
 
         public void Parse()
         {
-            var rows = ValidateRows();
+            ParseRows(ValidateRows());
         }
 
-        private IEnumerable<IRow> ValidateRows()
+        private IEnumerable<(string, string)> ValidateRows()
         {
             var diffChecker = new HashSet<string>();
             for (var i = 1; i <= _sheet.LastRowNum; i++)
@@ -65,8 +75,30 @@ namespace ExcelDatabase.Editor.Parser
                         $"Duplicate enum value '{enumValue}' in group {groupValue}");
                 }
 
-                yield return row;
+                yield return (groupValue, enumValue);
             }
+        }
+
+        private void ParseRows(IEnumerable<(string, string)> rows)
+        {
+            string prevGroupValue = null;
+            foreach (var (groupValue, enumValue) in rows)
+            {
+                if (prevGroupValue != groupValue)
+                {
+                    prevGroupValue = groupValue;
+                    _builder.Replace(RowTemplate, string.Empty);
+                    var groupTemplate = File.ReadAllText(GroupPath);
+                    _builder.Replace(GroupTemplate, groupTemplate + GroupTemplate).Replace(GroupVariable, groupValue);
+                }
+
+                var rowTemplate = File.ReadAllText(RowPath);
+                _builder.Replace(RowTemplate, rowTemplate + RowTemplate).Replace(RowVariable, enumValue);
+            }
+
+            _builder.Replace(RowTemplate, string.Empty);
+            _builder.Replace(GroupTemplate, string.Empty);
+            File.WriteAllText($"{Config.Root}/Dist/Em.{_tableName}.cs", _builder.ToString());
         }
     }
 }
