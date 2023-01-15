@@ -1,3 +1,6 @@
+using System.IO;
+using ExcelDatabase.Editor.Parser;
+using NPOI.XSSF.UserModel;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -7,13 +10,23 @@ namespace ExcelDatabase.Editor.Manager
     public class Manager : EditorWindow
     {
         [MenuItem("Tools/Excel Database/Show Manager")]
-        public static void ShowWindow()
+        private static void ShowWindow()
         {
             var window = GetWindow<Manager>();
             window.titleContent = new GUIContent("Excel Database Manager");
         }
 
-        public void CreateGUI()
+        [MenuItem("Tools/Excel Database/Parse Selection")]
+        private static void ParseSelection()
+        {
+            var file = Selection.objects[0];
+            using var stream = File.Open(AssetDatabase.GetAssetPath(file), FileMode.Open, FileAccess.Read);
+            var workbook = new XSSFWorkbook(stream);
+            var enumParser = new EnumParser(workbook, file.name);
+            enumParser.Parse();
+        }
+
+        private void CreateGUI()
         {
             // Each editor window contains a root VisualElement object
             var root = rootVisualElement;

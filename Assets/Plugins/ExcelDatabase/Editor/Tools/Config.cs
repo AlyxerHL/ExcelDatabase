@@ -16,7 +16,7 @@ namespace ExcelDatabase.Editor.Tools
                     return _root;
                 }
 
-                var assets = AssetDatabase.FindAssets("ExcelDatabase.root");
+                var assets = AssetDatabase.FindAssets("ExcelDatabaseRoot");
                 var rootFilePath = AssetDatabase.GUIDToAssetPath(assets[0]);
                 _root = Path.GetDirectoryName(rootFilePath);
                 return _root;
