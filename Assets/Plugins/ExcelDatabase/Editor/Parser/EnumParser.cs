@@ -34,7 +34,8 @@ namespace ExcelDatabase.Editor.Parser
 
         public string[] Parse()
         {
-            return ParseRows(ValidateRows());
+            ParseRows(ValidateRows());
+            return WriteScript();
         }
 
         private IEnumerable<Row> ValidateRows()
@@ -77,7 +78,7 @@ namespace ExcelDatabase.Editor.Parser
             }
         }
 
-        private string[] ParseRows(IEnumerable<Row> rows)
+        private void ParseRows(IEnumerable<Row> rows)
         {
             var tableTemplate = File.ReadAllText(TablePath);
             _builder.Append(tableTemplate).Replace(TableVariable, _tableName);
@@ -99,7 +100,10 @@ namespace ExcelDatabase.Editor.Parser
 
             _builder.Replace(RowTemplate, string.Empty);
             _builder.Replace(GroupTemplate, string.Empty);
+        }
 
+        private string[] WriteScript()
+        {
             var distDirectory = $"{Config.Root}/Dist";
             if (!Directory.Exists(distDirectory))
             {
