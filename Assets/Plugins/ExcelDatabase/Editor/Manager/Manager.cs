@@ -14,7 +14,7 @@ namespace ExcelDatabase.Editor.Manager
 {
     public class Manager : EditorWindow
     {
-        private static readonly string TableDataPath = $"{Config.Root}/Dist/TableData.json";
+        private static readonly string TableDataPath = $"{Config.DistPath}/TableData.json";
         private static SortedSet<TableData> _tableDataSet;
 
         private static SortedSet<TableData> TableDataSet
@@ -54,11 +54,7 @@ namespace ExcelDatabase.Editor.Manager
             {
                 try
                 {
-                    var enumParser = new EnumParser(file);
-                    var distPaths = enumParser.Parse();
-                    var excelPath = AssetDatabase.GetAssetPath(file);
-                    var tableData = new TableData(TableType.Enum, file.name, excelPath, distPaths);
-
+                    var tableData = new EnumParser(file).Parse();
                     if (TableDataSet.Add(tableData))
                     {
                         SyncTableData();
@@ -123,7 +119,7 @@ namespace ExcelDatabase.Editor.Manager
             listView.makeItem = MakeItem;
             listView.bindItem = BindItem;
             listView.itemsSource = TableDataSet.ToList();
-            listView.selectionType = SelectionType.Multiple;
+            listView.selectionType = SelectionType.None;
 
             listView.onItemsChosen += Debug.Log;
             listView.onSelectionChange += Debug.Log;

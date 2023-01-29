@@ -7,7 +7,7 @@ namespace ExcelDatabase.Editor.Tools
     {
         private static string _root;
 
-        public static string Root
+        private static string Root
         {
             get
             {
@@ -22,5 +22,8 @@ namespace ExcelDatabase.Editor.Tools
                 return _root;
             }
         }
+
+        public static readonly string DistPath = $"{Root}/Dist";
+        public static readonly string TemplatePath = $"{Root}/Editor/Templates";
     }
 }

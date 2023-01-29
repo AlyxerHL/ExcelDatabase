@@ -20,14 +20,13 @@ namespace ExcelDatabase.Editor.Parser
         private const string GroupVariable = "$GROUP$";
         private const string RowVariable = "$ROW$";
 
-        private static readonly string TemplatePath = $"{Config.Root}/Editor/Templates/Enum";
-        private static readonly string TablePath = $"{TemplatePath}/Table.txt";
-        private static readonly string GroupPath = $"{TemplatePath}/Group.txt";
-        private static readonly string RowPath = $"{TemplatePath}/Row.txt";
+        private static readonly string TablePath = $"{Config.TemplatePath}/Enum/Table.txt";
+        private static readonly string GroupPath = $"{Config.TemplatePath}/Enum/Group.txt";
+        private static readonly string RowPath = $"{Config.TemplatePath}/Enum/Row.txt";
 
-        private readonly string _tableName;
         private readonly ISheet _sheet;
-        private readonly StringBuilder _builder = new();
+        private readonly string _tableName;
+        private readonly string _excelPath;
 
         public EnumParser(Object file)
         {
@@ -35,12 +34,15 @@ namespace ExcelDatabase.Editor.Parser
             using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
             _sheet = new XSSFWorkbook(stream).GetSheetAt(0);
             _tableName = file.name;
+            _excelPath = AssetDatabase.GetAssetPath(file);
         }
 
-        public string[] Parse()
+        public TableData Parse()
         {
-            BuildString(ValidateRows());
-            return WriteScript();
+            var rows = ValidateRows();
+            var builder = BuildString(rows);
+            var distPaths = WriteScript(builder);
+            return new TableData(TableType.Enum, _tableName, _excelPath, distPaths);
         }
 
         private IEnumerable<Row> ValidateRows()
@@ -83,10 +85,10 @@ namespace ExcelDatabase.Editor.Parser
             }
         }
 
-        private void BuildString(IEnumerable<Row> rows)
+        private StringBuilder BuildString(IEnumerable<Row> rows)
         {
             var tableTemplate = File.ReadAllText(TablePath);
-            _builder.Append(tableTemplate).Replace(TableVariable, _tableName);
+            var builder = new StringBuilder(tableTemplate).Replace(TableVariable, _tableName);
             string prevGroupValue = null;
 
             foreach (var row in rows)
@@ -94,29 +96,30 @@ namespace ExcelDatabase.Editor.Parser
                 if (prevGroupValue != row.Group)
                 {
                     prevGroupValue = row.Group;
-                    _builder.Replace(RowTemplate, string.Empty);
+                    builder.Replace(RowTemplate, string.Empty);
                     var groupTemplate = File.ReadAllText(GroupPath);
-                    _builder.Replace(GroupTemplate, groupTemplate + GroupTemplate).Replace(GroupVariable, row.Group);
+                    builder.Replace(GroupTemplate, groupTemplate + GroupTemplate).Replace(GroupVariable, row.Group);
                 }
 
                 var rowTemplate = File.ReadAllText(RowPath);
-                _builder.Replace(RowTemplate, rowTemplate + RowTemplate).Replace(RowVariable, row.Enum);
+                builder.Replace(RowTemplate, rowTemplate + RowTemplate).Replace(RowVariable, row.Enum);
             }
 
-            _builder.Replace(RowTemplate, string.Empty);
-            _builder.Replace(GroupTemplate, string.Empty);
+            builder.Replace(RowTemplate, string.Empty);
+            builder.Replace(GroupTemplate, string.Empty);
+            return builder;
         }
 
-        private string[] WriteScript()
+        private string[] WriteScript(StringBuilder builder)
         {
-            var distDirectory = $"{Config.Root}/Dist";
+            var distDirectory = $"{Config.DistPath}/Enum";
             if (!Directory.Exists(distDirectory))
             {
                 Directory.CreateDirectory(distDirectory);
             }
 
-            var distPath = $"{distDirectory}/Em.{_tableName}.cs";
-            File.WriteAllText(distPath, _builder.ToString());
+            var distPath = $"{distDirectory}/{_tableName}.cs";
+            File.WriteAllText(distPath, builder.ToString());
             return new[] { distPath };
         }
 
