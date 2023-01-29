@@ -107,7 +107,7 @@ namespace ExcelDatabase.Editor.Manager
                 tableGroup.AddToClassList("table-data");
                 tableGroup.Add(new Label());
 
-                var tableButtonGroup = new GroupBox();
+                var tableButtonGroup = new VisualElement();
                 tableButtonGroup.AddToClassList("table-data-buttons");
                 tableButtonGroup.Add(new Button { text = "Edit", name = "edit-button" });
                 tableButtonGroup.Add(new Button { text = "Parse", name = "parse-button" });
@@ -119,13 +119,14 @@ namespace ExcelDatabase.Editor.Manager
 
             void BindItem(VisualElement e, int i)
             {
-                if (e is not GroupBox groupBox)
+                if (e is not GroupBox tableGroup)
                 {
                     return;
                 }
 
-                var label = groupBox.Q<Label>();
-                label.text = TableDataSet.ElementAt(i).Name;
+                var label = tableGroup.Q<Label>();
+                label.text = TableDataSet.ElementAt(i).ToString();
+                // TODO Make buttons work
             }
 
             var listView = rootVisualElement.Q<ListView>();

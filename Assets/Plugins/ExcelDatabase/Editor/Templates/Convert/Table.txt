@@ -16,6 +16,7 @@ namespace ExcelDatabase
             }
         }
 
+        [JsonObject(MemberSerialization.Fields)]
         public class $TABLE$_Type : TableType
         {#COL#        }
     }
