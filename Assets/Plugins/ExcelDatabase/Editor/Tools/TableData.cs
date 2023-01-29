@@ -19,6 +19,11 @@ namespace ExcelDatabase.Editor.Tools
             _distPaths = distPaths;
         }
 
+        public override string ToString()
+        {
+            return $"{_type} - {_name}";
+        }
+
         public int CompareTo(TableData other)
         {
             var typeComparison = _type.CompareTo(other._type);
@@ -30,11 +35,6 @@ namespace ExcelDatabase.Editor.Tools
         int IComparable.CompareTo(object obj)
         {
             return CompareTo((TableData)obj);
-        }
-
-        public override string ToString()
-        {
-            return $"{_type} - {_name}";
         }
     }
 }

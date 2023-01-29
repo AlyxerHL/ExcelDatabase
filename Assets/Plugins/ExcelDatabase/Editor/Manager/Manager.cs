@@ -103,39 +103,22 @@ namespace ExcelDatabase.Editor.Manager
         {
             VisualElement MakeItem()
             {
-                var tableGroup = new GroupBox();
-                tableGroup.AddToClassList("table-data");
-                tableGroup.Add(new Label());
-
-                var tableButtonGroup = new VisualElement();
-                tableButtonGroup.AddToClassList("table-data-buttons");
-                tableButtonGroup.Add(new Button { text = "Edit", name = "edit-button" });
-                tableButtonGroup.Add(new Button { text = "Parse", name = "parse-button" });
-                tableButtonGroup.Add(new Button { text = "Remove", name = "remove-button" });
-
-                tableGroup.Add(tableButtonGroup);
-                return tableGroup;
+                return new Label { name = "table-label" };
             }
 
             void BindItem(VisualElement e, int i)
             {
-                if (e is not GroupBox tableGroup)
+                if (e is Label label)
                 {
-                    return;
+                    label.text = TableDataSet.ElementAt(i).ToString();
                 }
-
-                var label = tableGroup.Q<Label>();
-                label.text = TableDataSet.ElementAt(i).ToString();
-                // TODO Make buttons work
             }
 
             var listView = rootVisualElement.Q<ListView>();
             listView.makeItem = MakeItem;
             listView.bindItem = BindItem;
             listView.itemsSource = TableDataSet.ToList();
-            listView.selectionType = SelectionType.None;
-
-            listView.onItemsChosen += Debug.Log;
+            listView.selectionType = SelectionType.Multiple;
             listView.onSelectionChange += Debug.Log;
         }
     }

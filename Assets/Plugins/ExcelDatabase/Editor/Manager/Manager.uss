@@ -1,9 +1,3 @@
-.table-data {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.table-data-buttons {
-    flex-direction: row;
+#table-label {
+    padding: 9px 9px;
 }
