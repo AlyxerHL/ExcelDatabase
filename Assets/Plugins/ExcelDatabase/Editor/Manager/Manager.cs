@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -104,15 +103,29 @@ namespace ExcelDatabase.Editor.Manager
         {
             VisualElement MakeItem()
             {
-                return new Label();
+                var tableGroup = new GroupBox();
+                tableGroup.AddToClassList("table-data");
+                tableGroup.Add(new Label());
+
+                var tableButtonGroup = new GroupBox();
+                tableButtonGroup.AddToClassList("table-data-buttons");
+                tableButtonGroup.Add(new Button { text = "Edit", name = "edit-button" });
+                tableButtonGroup.Add(new Button { text = "Parse", name = "parse-button" });
+                tableButtonGroup.Add(new Button { text = "Remove", name = "remove-button" });
+
+                tableGroup.Add(tableButtonGroup);
+                return tableGroup;
             }
 
             void BindItem(VisualElement e, int i)
             {
-                if (e is Label label)
+                if (e is not GroupBox groupBox)
                 {
-                    label.text = TableDataSet.ElementAt(i).Name;
+                    return;
                 }
+
+                var label = groupBox.Q<Label>();
+                label.text = TableDataSet.ElementAt(i).Name;
             }
 
             var listView = rootVisualElement.Q<ListView>();

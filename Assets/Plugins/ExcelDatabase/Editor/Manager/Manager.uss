@@ -1,5 +1,13 @@
-Label {
-    font-size: 20px;
-    -unity-font-style: bold;
-    color: rgb(68, 138, 255);
+.table-data {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.table-data-buttons {
+    flex-direction: row;
+    margin-bottom: 0;
+    margin-top: 0;
+    padding-bottom: 0;
+    padding-top: 0;
 }
