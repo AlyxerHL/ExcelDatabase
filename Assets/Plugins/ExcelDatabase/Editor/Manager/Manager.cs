@@ -64,7 +64,7 @@ namespace ExcelDatabase.Editor.Manager
                 }
                 catch (InvalidTableException e)
                 {
-                    Debug.LogError(e.Message);
+                    Debug.LogError($"{e.TableName}: {e.Message}");
                 }
             }
 
