@@ -49,10 +49,8 @@ namespace ExcelDatabase.Editor.Manager
         [MenuItem("Tools/Excel Database/Parse Enum")]
         private static void ParseEnum()
         {
-            Debug.Log("ParsEe");
             foreach (var file in Selection.objects.Where(IsExcelFile))
             {
-                Debug.Log("Parse");
                 try
                 {
                     var tableData = new EnumParser(file).Parse();
@@ -133,7 +131,6 @@ namespace ExcelDatabase.Editor.Manager
             listView.makeItem = MakeItem;
             listView.bindItem = BindItem;
             listView.itemsSource = TableDataSet.ToList();
-            listView.selectionType = SelectionType.Multiple;
 
             listView.onSelectionChange += tables =>
                 _selection = tables.Select(table =>

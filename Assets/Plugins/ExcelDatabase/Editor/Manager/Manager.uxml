@@ -5,5 +5,5 @@
         <ui:Button text="Parse" display-tooltip-when-elided="true" name="parse-button" />
         <ui:Button text="Remove" display-tooltip-when-elided="true" name="remove-button" />
     </ui:GroupBox>
-    <ui:ListView />
+    <ui:ListView selection-type="Multiple" />
 </ui:UXML>
