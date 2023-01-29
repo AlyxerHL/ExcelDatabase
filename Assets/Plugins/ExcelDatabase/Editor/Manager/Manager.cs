@@ -12,30 +12,30 @@ namespace ExcelDatabase.Editor.Manager
 {
     public class Manager : EditorWindow
     {
-        private static readonly string TableDataPath = $"{Config.DistPath}/TableData.json";
-        private static SortedSet<TableData> _tableDataSet;
-        private static IEnumerable<Object> _selection;
+        private static readonly string ResultPath = $"{Config.DistPath}/ParseResult.json";
+        private static SortedSet<ParseResult> _resultSet;
+        private static IEnumerable<ParseResult> _selection;
 
-        private static SortedSet<TableData> TableDataSet
+        private static SortedSet<ParseResult> ResultSet
         {
             get
             {
-                if (_tableDataSet != null)
+                if (_resultSet != null)
                 {
-                    return _tableDataSet;
+                    return _resultSet;
                 }
 
-                if (File.Exists(TableDataPath))
+                if (File.Exists(ResultPath))
                 {
-                    var json = File.ReadAllText(TableDataPath);
-                    _tableDataSet = JsonConvert.DeserializeObject<SortedSet<TableData>>(json);
+                    var json = File.ReadAllText(ResultPath);
+                    _resultSet = JsonConvert.DeserializeObject<SortedSet<ParseResult>>(json);
                 }
                 else
                 {
-                    _tableDataSet = new SortedSet<TableData>();
+                    _resultSet = new SortedSet<ParseResult>();
                 }
 
-                return _tableDataSet;
+                return _resultSet;
             }
         }
 
@@ -49,40 +49,7 @@ namespace ExcelDatabase.Editor.Manager
         [MenuItem("Tools/Excel Database/Parse Selection")]
         private static void ParseSelection()
         {
-            Parse(Selection.objects);
-        }
-
-        private static void Parse(IEnumerable<Object> objects)
-        {
-            foreach (var file in objects.Where(IsExcelFile))
-            {
-                try
-                {
-                    var tableData = new EnumParser(file).Parse();
-                    if (TableDataSet.Add(tableData))
-                    {
-                        SyncTableData();
-                    }
-                }
-                catch (InvalidTableException e)
-                {
-                    Debug.LogError($"{e.TableName}: {e.Message}");
-                }
-            }
-
-            AssetDatabase.Refresh();
-        }
-
-        private static bool IsExcelFile(Object file)
-        {
-            var path = AssetDatabase.GetAssetPath(file);
-            return Path.GetExtension(path) == ".xlsx";
-        }
-
-        private static void SyncTableData()
-        {
-            var json = JsonConvert.SerializeObject(TableDataSet);
-            File.WriteAllText(TableDataPath, json);
+            ParseTables(Selection.objects);
         }
 
         private void CreateGUI()
@@ -107,12 +74,25 @@ namespace ExcelDatabase.Editor.Manager
 
         private void RegisterButtons()
         {
-            rootVisualElement.Q<Button>("edit-button")
-                .RegisterCallback<ClickEvent>(_ => Debug.Log("Edit Button"));
-            rootVisualElement.Q<Button>("parse-button")
-                .RegisterCallback<ClickEvent>(_ => Parse(_selection));
-            rootVisualElement.Q<Button>("remove-button")
-                .RegisterCallback<ClickEvent>(_ => Debug.Log("Remove Button"));
+            void HandleEdit(ClickEvent _)
+            {
+                Debug.Log("Edit Button");
+            }
+
+            void HandleParse(ClickEvent _)
+            {
+                var obj = _selection.Select(table => AssetDatabase.LoadAssetAtPath<Object>(table.ExcelPath));
+                ParseTables(obj);
+            }
+
+            void HandleRemove(ClickEvent _)
+            {
+                RemoveTables(_selection);
+            }
+
+            rootVisualElement.Q<Button>("edit-button").RegisterCallback<ClickEvent>(HandleEdit);
+            rootVisualElement.Q<Button>("parse-button").RegisterCallback<ClickEvent>(HandleParse);
+            rootVisualElement.Q<Button>("remove-button").RegisterCallback<ClickEvent>(HandleRemove);
         }
 
         private void ListTables()
@@ -128,18 +108,62 @@ namespace ExcelDatabase.Editor.Manager
             {
                 if (e is Label label)
                 {
-                    label.text = TableDataSet.ElementAt(i).ToString();
+                    label.text = ResultSet.ElementAt(i).ToString();
                 }
             }
 
             var listView = rootVisualElement.Q<ListView>();
             listView.makeItem = MakeItem;
             listView.bindItem = BindItem;
-            listView.itemsSource = TableDataSet.ToList();
+            listView.itemsSource = ResultSet.ToList();
+            listView.onSelectionChange += selection => _selection = selection.Cast<ParseResult>();
+        }
 
-            listView.onSelectionChange += tables =>
-                _selection = tables.Select(table =>
-                    AssetDatabase.LoadAssetAtPath<Object>(((TableData)table).ExcelPath));
+        private static void ParseTables(IEnumerable<Object> files)
+        {
+            bool IsExcelFile(Object file)
+            {
+                var path = AssetDatabase.GetAssetPath(file);
+                return Path.GetExtension(path) == ".xlsx";
+            }
+
+            foreach (var file in files.Where(IsExcelFile))
+            {
+                try
+                {
+                    var tableData = new EnumParser(file).Parse();
+                    if (ResultSet.Add(tableData))
+                    {
+                        SyncResultSet();
+                    }
+                }
+                catch (InvalidTableException e)
+                {
+                    Debug.LogError($"{e.TableName}: {e.Message}");
+                }
+            }
+
+            AssetDatabase.Refresh();
+        }
+
+        private static void RemoveTables(IEnumerable<ParseResult> tables)
+        {
+            foreach (var table in tables)
+            {
+                ResultSet.Remove(table);
+                foreach (var distPath in table.DistPaths)
+                {
+                    AssetDatabase.DeleteAsset(distPath);
+                }
+            }
+
+            SyncResultSet();
+        }
+
+        private static void SyncResultSet()
+        {
+            var json = JsonConvert.SerializeObject(ResultSet);
+            File.WriteAllText(ResultPath, json);
         }
     }
 }

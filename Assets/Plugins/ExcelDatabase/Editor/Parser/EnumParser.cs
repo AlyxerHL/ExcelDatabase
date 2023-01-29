@@ -37,12 +37,12 @@ namespace ExcelDatabase.Editor.Parser
             _excelPath = AssetDatabase.GetAssetPath(file);
         }
 
-        public TableData Parse()
+        public ParseResult Parse()
         {
             var rows = ValidateRows();
-            var builder = BuildString(rows);
-            var distPaths = WriteScript(builder);
-            return new TableData(TableType.Enum, _tableName, _excelPath, distPaths);
+            var script = BuildScript(rows);
+            var distPaths = WriteScript(script);
+            return new ParseResult(TableType.Enum, _tableName, _excelPath, distPaths);
         }
 
         private IEnumerable<Row> ValidateRows()
@@ -85,7 +85,7 @@ namespace ExcelDatabase.Editor.Parser
             }
         }
 
-        private StringBuilder BuildString(IEnumerable<Row> rows)
+        private string BuildScript(IEnumerable<Row> rows)
         {
             var tableTemplate = File.ReadAllText(TablePath);
             var builder = new StringBuilder(tableTemplate).Replace(TableVariable, _tableName);
@@ -107,10 +107,10 @@ namespace ExcelDatabase.Editor.Parser
 
             builder.Replace(RowTemplate, string.Empty);
             builder.Replace(GroupTemplate, string.Empty);
-            return builder;
+            return builder.ToString();
         }
 
-        private string[] WriteScript(StringBuilder builder)
+        private string[] WriteScript(string script)
         {
             var distDirectory = $"{Config.DistPath}/Enum";
             if (!Directory.Exists(distDirectory))
@@ -119,7 +119,7 @@ namespace ExcelDatabase.Editor.Parser
             }
 
             var distPath = $"{distDirectory}/{_tableName}.cs";
-            File.WriteAllText(distPath, builder.ToString());
+            File.WriteAllText(distPath, script);
             return new[] { distPath };
         }
 

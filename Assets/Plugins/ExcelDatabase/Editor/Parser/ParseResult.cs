@@ -1,22 +1,23 @@
 using System;
+using ExcelDatabase.Editor.Tools;
 using Newtonsoft.Json;
 
-namespace ExcelDatabase.Editor.Tools
+namespace ExcelDatabase.Editor.Parser
 {
     [JsonObject(MemberSerialization.Fields)]
-    public readonly struct TableData : IComparable<TableData>, IComparable
+    public readonly struct ParseResult : IComparable<ParseResult>, IComparable
     {
         private readonly TableType _type;
         private readonly string _name;
         public readonly string ExcelPath;
-        private readonly string[] _distPaths;
+        public readonly string[] DistPaths;
 
-        public TableData(TableType type, string name, string excelPath, string[] distPaths)
+        public ParseResult(TableType type, string name, string excelPath, string[] distPaths)
         {
             _type = type;
             _name = name;
             ExcelPath = excelPath;
-            _distPaths = distPaths;
+            DistPaths = distPaths;
         }
 
         public override string ToString()
@@ -24,7 +25,7 @@ namespace ExcelDatabase.Editor.Tools
             return $"{_type} - {_name}";
         }
 
-        public int CompareTo(TableData other)
+        public int CompareTo(ParseResult other)
         {
             var typeComparison = _type.CompareTo(other._type);
             return typeComparison != 0
@@ -34,7 +35,7 @@ namespace ExcelDatabase.Editor.Tools
 
         int IComparable.CompareTo(object obj)
         {
-            return CompareTo((TableData)obj);
+            return CompareTo((ParseResult)obj);
         }
     }
 }
