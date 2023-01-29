@@ -12,9 +12,8 @@ namespace ExcelDatabase.Editor.Manager
 {
     public class Manager : EditorWindow
     {
-        private static readonly string ResultPath = $"{Config.DistPath}/ParseResult.json";
-        private static SortedSet<ParseResult> _resultSet;
         private static IEnumerable<ParseResult> _selection;
+        private static SortedSet<ParseResult> _resultSet;
 
         private static SortedSet<ParseResult> ResultSet
         {
@@ -38,6 +37,8 @@ namespace ExcelDatabase.Editor.Manager
                 return _resultSet;
             }
         }
+
+        private static string ResultPath => $"{Config.DistPath}/ParseResult.json";
 
         [MenuItem("Tools/Excel Database/Show Manager")]
         private static void ShowManager()
