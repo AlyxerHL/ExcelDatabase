@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,6 +8,7 @@ using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace ExcelDatabase.Editor.Manager
 {
@@ -85,27 +87,46 @@ namespace ExcelDatabase.Editor.Manager
 
         private void CreateGUI()
         {
-            // Each editor window contains a root VisualElement object
-            var root = rootVisualElement;
+            ApplyUI();
+            ListTables();
+        }
 
-            // VisualElements objects can contain other VisualElement following a tree hierarchy.
-            VisualElement label = new Label("Hello World! From C#");
-            root.Add(label);
-
-            // Import UXML
+        private void ApplyUI()
+        {
             var visualTree =
                 AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                     "Assets/Plugins/ExcelDatabase/Editor/Manager/Manager.uxml");
-            VisualElement labelFromUxml = visualTree.Instantiate();
-            root.Add(labelFromUxml);
+            rootVisualElement.Add(visualTree.Instantiate());
 
-            // A stylesheet can be added to a VisualElement.
-            // The style will be applied to the VisualElement and all of its children.
             var styleSheet =
-                AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/Plugins/ExcelDatabase/Editor/Manager/Manager.uss");
-            VisualElement labelWithStyle = new Label("Hello World! With Style");
-            labelWithStyle.styleSheets.Add(styleSheet);
-            root.Add(labelWithStyle);
+                AssetDatabase.LoadAssetAtPath<StyleSheet>(
+                    "Assets/Plugins/ExcelDatabase/Editor/Manager/Manager.uss");
+            rootVisualElement.styleSheets.Add(styleSheet);
+        }
+
+        private void ListTables()
+        {
+            VisualElement MakeItem()
+            {
+                return new Label();
+            }
+
+            void BindItem(VisualElement e, int i)
+            {
+                if (e is Label label)
+                {
+                    label.text = TableDataSet.ElementAt(i).Name;
+                }
+            }
+
+            var listView = rootVisualElement.Q<ListView>();
+            listView.makeItem = MakeItem;
+            listView.bindItem = BindItem;
+            listView.itemsSource = TableDataSet.ToList();
+            listView.selectionType = SelectionType.Multiple;
+
+            listView.onItemsChosen += Debug.Log;
+            listView.onSelectionChange += Debug.Log;
         }
     }
 }
