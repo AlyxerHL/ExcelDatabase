@@ -46,10 +46,15 @@ namespace ExcelDatabase.Editor.Manager
             window.titleContent = new GUIContent("Excel Database Manager");
         }
 
-        [MenuItem("Tools/Excel Database/Parse Enum")]
-        private static void ParseEnum()
+        [MenuItem("Tools/Excel Database/Parse Selection")]
+        private static void ParseSelection()
         {
-            foreach (var file in Selection.objects.Where(IsExcelFile))
+            Parse(Selection.objects);
+        }
+
+        private static void Parse(IEnumerable<Object> objects)
+        {
+            foreach (var file in objects.Where(IsExcelFile))
             {
                 try
                 {
@@ -105,7 +110,7 @@ namespace ExcelDatabase.Editor.Manager
             rootVisualElement.Q<Button>("edit-button")
                 .RegisterCallback<ClickEvent>(_ => Debug.Log("Edit Button"));
             rootVisualElement.Q<Button>("parse-button")
-                .RegisterCallback<ClickEvent>(_ => Debug.Log("Parse Button"));
+                .RegisterCallback<ClickEvent>(_ => Parse(_selection));
             rootVisualElement.Q<Button>("remove-button")
                 .RegisterCallback<ClickEvent>(_ => Debug.Log("Remove Button"));
         }
