@@ -112,11 +112,16 @@ namespace ExcelDatabase.Editor.Manager
                 }
             }
 
+            void HandleSelectionChange(IEnumerable<object> selection)
+            {
+                _selection = selection.Cast<ParseResult>();
+            }
+
             var listView = rootVisualElement.Q<ListView>();
+            listView.itemsSource = ResultSet.ToList();
             listView.makeItem = MakeItem;
             listView.bindItem = BindItem;
-            listView.itemsSource = ResultSet.ToList();
-            listView.onSelectionChange += selection => _selection = selection.Cast<ParseResult>();
+            listView.onSelectionChange += HandleSelectionChange;
         }
 
         private static void ParseTables(IEnumerable<Object> files)
