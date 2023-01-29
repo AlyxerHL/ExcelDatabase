@@ -7,7 +7,6 @@ using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Object = UnityEngine.Object;
 
 namespace ExcelDatabase.Editor.Manager
 {
@@ -15,6 +14,7 @@ namespace ExcelDatabase.Editor.Manager
     {
         private static readonly string TableDataPath = $"{Config.DistPath}/TableData.json";
         private static SortedSet<TableData> _tableDataSet;
+        private static IEnumerable<Object> _selection;
 
         private static SortedSet<TableData> TableDataSet
         {
@@ -49,8 +49,10 @@ namespace ExcelDatabase.Editor.Manager
         [MenuItem("Tools/Excel Database/Parse Enum")]
         private static void ParseEnum()
         {
+            Debug.Log("ParsEe");
             foreach (var file in Selection.objects.Where(IsExcelFile))
             {
+                Debug.Log("Parse");
                 try
                 {
                     var tableData = new EnumParser(file).Parse();
@@ -83,6 +85,7 @@ namespace ExcelDatabase.Editor.Manager
         private void CreateGUI()
         {
             ApplyUI();
+            RegisterButtons();
             ListTables();
         }
 
@@ -99,11 +102,23 @@ namespace ExcelDatabase.Editor.Manager
             rootVisualElement.styleSheets.Add(styleSheet);
         }
 
+        private void RegisterButtons()
+        {
+            rootVisualElement.Q<Button>("edit-button")
+                .RegisterCallback<ClickEvent>(_ => Debug.Log("Edit Button"));
+            rootVisualElement.Q<Button>("parse-button")
+                .RegisterCallback<ClickEvent>(_ => Debug.Log("Parse Button"));
+            rootVisualElement.Q<Button>("remove-button")
+                .RegisterCallback<ClickEvent>(_ => Debug.Log("Remove Button"));
+        }
+
         private void ListTables()
         {
             VisualElement MakeItem()
             {
-                return new Label { name = "table-label" };
+                var label = new Label();
+                label.AddToClassList("table-label");
+                return label;
             }
 
             void BindItem(VisualElement e, int i)
@@ -119,7 +134,10 @@ namespace ExcelDatabase.Editor.Manager
             listView.bindItem = BindItem;
             listView.itemsSource = TableDataSet.ToList();
             listView.selectionType = SelectionType.Multiple;
-            listView.onSelectionChange += Debug.Log;
+
+            listView.onSelectionChange += tables =>
+                _selection = tables.Select(table =>
+                    AssetDatabase.LoadAssetAtPath<Object>(((TableData)table).ExcelPath));
         }
     }
 }

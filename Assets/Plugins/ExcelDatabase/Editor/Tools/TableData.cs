@@ -8,14 +8,14 @@ namespace ExcelDatabase.Editor.Tools
     {
         private readonly TableType _type;
         private readonly string _name;
-        private readonly string _excelPath;
+        public readonly string ExcelPath;
         private readonly string[] _distPaths;
 
         public TableData(TableType type, string name, string excelPath, string[] distPaths)
         {
             _type = type;
             _name = name;
-            _excelPath = excelPath;
+            ExcelPath = excelPath;
             _distPaths = distPaths;
         }
 
