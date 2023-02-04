@@ -48,7 +48,7 @@ namespace ExcelDatabase.Editor.Parser
         {
             var nameRow = _sheet.GetRow(NameRow);
             var typeRow = _sheet.GetRow(TypeRow);
-            if (nameRow.GetCell(IDCol).GetValue() != "ID" || typeRow.GetCell(0).GetValue() != "string")
+            if (nameRow.GetCellValue(IDCol) != "ID" || typeRow.GetCellValue(0) != "string")
             {
                 throw new ParseFailureException(_tableName, "Invalid ID column");
             }
@@ -58,8 +58,8 @@ namespace ExcelDatabase.Editor.Parser
             {
                 var col = new Col
                 {
-                    Name = nameRow.GetCell(i).GetValue(),
-                    Type = typeRow.GetCell(i).GetValue()
+                    Name = nameRow.GetCellValue(i),
+                    Type = typeRow.GetCellValue(i)
                 };
 
                 if (col.Name == string.Empty)

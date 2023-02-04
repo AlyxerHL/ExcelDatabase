@@ -57,9 +57,9 @@ namespace ExcelDatabase.Editor.Parser
         private IEnumerable<Row> ValidateRows()
         {
             var firstRow = _sheet.GetRow(0);
-            if (firstRow.GetCell(NameCol).GetValue() != "VariableName" ||
-                firstRow.GetCell(TypeCol).GetValue() != "DataType" ||
-                firstRow.GetCell(ValueCol).GetValue() != "Value")
+            if (firstRow.GetCellValue(NameCol) != "VariableName" ||
+                firstRow.GetCellValue(TypeCol) != "DataType" ||
+                firstRow.GetCellValue(ValueCol) != "Value")
             {
                 throw new ParseFailureException(_tableName, "Invalid column name");
             }
@@ -69,9 +69,9 @@ namespace ExcelDatabase.Editor.Parser
             {
                 var row = new Row
                 {
-                    Name = _sheet.GetRow(i).GetCell(NameCol).GetValue(),
-                    Type = _sheet.GetRow(i).GetCell(TypeCol).GetValue(),
-                    Value = _sheet.GetRow(i).GetCell(ValueCol).GetValue()
+                    Name = _sheet.GetRow(i).GetCellValue(NameCol),
+                    Type = _sheet.GetRow(i).GetCellValue(TypeCol),
+                    Value = _sheet.GetRow(i).GetCellValue(ValueCol)
                 };
 
                 if (row.Name == string.Empty)

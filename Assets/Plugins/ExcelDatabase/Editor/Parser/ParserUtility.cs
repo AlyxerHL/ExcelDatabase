@@ -1,12 +1,13 @@
 using System.Globalization;
 using NPOI.SS.UserModel;
 
-namespace ExcelDatabase.Editor.Tools
+namespace ExcelDatabase.Editor.Parser
 {
-    public static class TableUtility
+    public static class ParserUtility
     {
-        public static string GetValue(this ICell cell)
+        public static string GetCellValue(this IRow row, int index)
         {
+            var cell = row.GetCell(index);
             var cellType = cell switch
             {
                 null => CellType.Blank,

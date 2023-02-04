@@ -48,8 +48,8 @@ namespace ExcelDatabase.Editor.Parser
         private IEnumerable<Row> ValidateRows()
         {
             var firstRow = _sheet.GetRow(0);
-            if (firstRow.GetCell(GroupCol).GetValue() != "EnumGroup" ||
-                firstRow.GetCell(EnumCol).GetValue() != "Enum")
+            if (firstRow.GetCellValue(GroupCol) != "EnumGroup" ||
+                firstRow.GetCellValue(EnumCol) != "Enum")
             {
                 throw new ParseFailureException(_tableName, "Invalid column name");
             }
@@ -59,8 +59,8 @@ namespace ExcelDatabase.Editor.Parser
             {
                 var row = new Row
                 {
-                    Group = _sheet.GetRow(i).GetCell(GroupCol).GetValue(),
-                    Enum = _sheet.GetRow(i).GetCell(EnumCol).GetValue()
+                    Group = _sheet.GetRow(i).GetCellValue(GroupCol),
+                    Enum = _sheet.GetRow(i).GetCellValue(EnumCol)
                 };
 
                 if (row.Group == string.Empty)
