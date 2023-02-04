@@ -136,8 +136,6 @@ namespace ExcelDatabase.Editor.Parser
 
         private readonly struct Col
         {
-            private const string ConvertPrefix = "Tb";
-
             public readonly string Name;
             public readonly string Type;
             public readonly bool IsArray;
@@ -148,7 +146,7 @@ namespace ExcelDatabase.Editor.Parser
                 Name = ParseUtility.Format(name);
                 Type = ParseUtility.Format(type);
                 IsArray = type.EndsWith("[]");
-                IsConvert = type.StartsWith(ConvertPrefix);
+                IsConvert = type.StartsWith("Tb");
             }
         }
     }
