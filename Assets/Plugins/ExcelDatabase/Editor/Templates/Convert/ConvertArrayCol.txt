@@ -1,0 +1,3 @@
+
+            private readonly string[] _id$NAME$;
+            public IEnumerable<$TYPE$Type> $NAME$ => _id$NAME$.Select(id => $TYPE$[id]);

@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using ExcelDatabase.Editor.Library;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using UnityEditor;
-using Object = UnityEngine.Object;
+using UnityEngine;
+using System.Linq;
 
 namespace ExcelDatabase.Editor.Parser
 {
@@ -20,8 +22,10 @@ namespace ExcelDatabase.Editor.Parser
         private const string NameVariable = "$NAME$";
 
         private static readonly string TablePath = $"{Config.TemplatePath}/Convert/Table.txt";
+        private static readonly string GeneralColPath = $"{Config.TemplatePath}/Convert/GeneralCol.txt";
         private static readonly string ConvertColPath = $"{Config.TemplatePath}/Convert/ConvertCol.txt";
-        private static readonly string PrimitiveColPath = $"{Config.TemplatePath}/Convert/PrimitiveCol.txt";
+        private static readonly string GeneralArrayColPath = $"{Config.TemplatePath}/Convert/GeneralArrayCol.txt";
+        private static readonly string ConvertArrayColPath = $"{Config.TemplatePath}/Convert/ConvertArrayCol.txt";
 
         private readonly ISheet _sheet;
         private readonly string _tableName;
@@ -82,9 +86,12 @@ namespace ExcelDatabase.Editor.Parser
                         return systemType != null;
                     }
 
-                    if (TypeExists(col.Type) || TypeExists(col.Type + "Type"))
+                    switch (col.IsConvert)
                     {
-                        throw new ParseFailureException(_tableName, $"Invalid column type '{col.Type}'");
+                        case true when TypeExists(col.Type + "Type"):
+                        case false when TypeExists(col.Type):
+                            throw new ParseFailureException(_tableName,
+                                $"Column type '{col.Type}' in '{col.Name}' is invalid");
                     }
                 }
 
@@ -94,20 +101,47 @@ namespace ExcelDatabase.Editor.Parser
 
         private string BuildScript(IEnumerable<Col> cols)
         {
-            return null;
+            var tableTemplate = File.ReadAllText(TablePath);
+            var generalColTemplate = File.ReadAllText(GeneralColPath);
+            var convertColTemplate = File.ReadAllText(ConvertColPath);
+            var generalArrayColTemplate = File.ReadAllText(GeneralArrayColPath);
+            var convertArrayColTemplate = File.ReadAllText(ConvertArrayColPath);
+            var builder = new StringBuilder(tableTemplate).Replace(TableVariable, _tableName);
+
+            foreach (var col in cols)
+            {
+                if (col.IsConvert)
+                {
+                    builder.Replace(ColTemplate, col.IsArray ? convertArrayColTemplate : convertColTemplate);
+                }
+                else
+                {
+                    builder.Replace(ColTemplate, col.IsArray ? generalArrayColTemplate : generalColTemplate);
+                }
+
+                builder
+                    .Replace(TypeVariable, col.Type)
+                    .Replace(NameVariable, col.Name);
+            }
+
+            return builder.ToString();
         }
 
         private readonly struct Col
         {
+            private const string ConvertPrefix = "Tb";
+
             public readonly string Name;
             public readonly string Type;
             public readonly bool IsArray;
+            public readonly bool IsConvert;
 
             public Col(string name, string type)
             {
                 Name = ParseUtility.Format(name);
                 Type = ParseUtility.Format(type);
                 IsArray = type.EndsWith("[]");
+                IsConvert = type.StartsWith(ConvertPrefix);
             }
         }
     }
