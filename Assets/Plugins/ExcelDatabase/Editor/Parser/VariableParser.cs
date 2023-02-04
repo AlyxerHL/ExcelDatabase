@@ -12,9 +12,9 @@ namespace ExcelDatabase.Editor.Parser
 {
     public class VariableParser : IParsable
     {
-        private const int NameColumn = 0;
-        private const int TypeColumn = 1;
-        private const int ValueColumn = 2;
+        private const int NameCol = 0;
+        private const int TypeCol = 1;
+        private const int ValueCol = 2;
 
         private const string RowTemplate = "#ROW#";
         private const string TableVariable = "$TABLE$";
@@ -57,9 +57,9 @@ namespace ExcelDatabase.Editor.Parser
         private IEnumerable<Row> ValidateRows()
         {
             var firstRow = _sheet.GetRow(0);
-            if (firstRow.GetCell(NameColumn).GetValue() != "VariableName" ||
-                firstRow.GetCell(TypeColumn).GetValue() != "DataType" ||
-                firstRow.GetCell(ValueColumn).GetValue() != "Value")
+            if (firstRow.GetCell(NameCol).GetValue() != "VariableName" ||
+                firstRow.GetCell(TypeCol).GetValue() != "DataType" ||
+                firstRow.GetCell(ValueCol).GetValue() != "Value")
             {
                 throw new ParseFailureException(_tableName, "Invalid column name");
             }
@@ -68,9 +68,9 @@ namespace ExcelDatabase.Editor.Parser
             for (var i = 1; i <= _sheet.LastRowNum; i++)
             {
                 var row = _sheet.GetRow(i);
-                var nameValue = row.GetCell(NameColumn).GetValue();
-                var typeValue = row.GetCell(TypeColumn).GetValue();
-                var valueValue = row.GetCell(ValueColumn).GetValue();
+                var nameValue = row.GetCell(NameCol).GetValue();
+                var typeValue = row.GetCell(TypeCol).GetValue();
+                var valueValue = row.GetCell(ValueCol).GetValue();
 
                 if (nameValue == string.Empty)
                 {

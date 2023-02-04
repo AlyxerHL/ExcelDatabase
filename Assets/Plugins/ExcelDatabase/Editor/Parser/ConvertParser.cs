@@ -37,18 +37,18 @@ namespace ExcelDatabase.Editor.Parser
 
         public ParseResult Parse()
         {
-            var rows = ValidateColumns();
+            var rows = ValidateCols();
             var script = BuildScript(rows);
             var distPaths = WriteScript(script);
             return new ParseResult(TableType.Convert, _tableName, _excelPath, distPaths);
         }
 
-        private IEnumerable<Column> ValidateColumns()
+        private IEnumerable<Col> ValidateCols()
         {
             return null;
         }
 
-        private string BuildScript(IEnumerable<Column> columns)
+        private string BuildScript(IEnumerable<Col> cols)
         {
             return null;
         }
@@ -58,12 +58,12 @@ namespace ExcelDatabase.Editor.Parser
             return null;
         }
 
-        private readonly struct Column
+        private readonly struct Col
         {
             public readonly string Name;
             public readonly string Type;
 
-            public Column(string name, string type)
+            public Col(string name, string type)
             {
                 Name = name;
                 Type = type;

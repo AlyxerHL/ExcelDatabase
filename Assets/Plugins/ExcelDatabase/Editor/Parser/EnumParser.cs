@@ -11,8 +11,8 @@ namespace ExcelDatabase.Editor.Parser
 {
     public class EnumParser : IParsable
     {
-        private const int GroupColumn = 0;
-        private const int EnumColumn = 1;
+        private const int GroupCol = 0;
+        private const int EnumCol = 1;
 
         private const string GroupTemplate = "#GROUP#";
         private const string RowTemplate = "#ROW#";
@@ -48,8 +48,8 @@ namespace ExcelDatabase.Editor.Parser
         private IEnumerable<Row> ValidateRows()
         {
             var firstRow = _sheet.GetRow(0);
-            if (firstRow.GetCell(GroupColumn).GetValue() != "EnumGroup" ||
-                firstRow.GetCell(EnumColumn).GetValue() != "Enum")
+            if (firstRow.GetCell(GroupCol).GetValue() != "EnumGroup" ||
+                firstRow.GetCell(EnumCol).GetValue() != "Enum")
             {
                 throw new ParseFailureException(_tableName, "Invalid column name");
             }
@@ -58,8 +58,8 @@ namespace ExcelDatabase.Editor.Parser
             for (var i = 1; i <= _sheet.LastRowNum; i++)
             {
                 var row = _sheet.GetRow(i);
-                var groupValue = row.GetCell(GroupColumn).GetValue();
-                var enumValue = row.GetCell(EnumColumn).GetValue();
+                var groupValue = row.GetCell(GroupCol).GetValue();
+                var enumValue = row.GetCell(EnumCol).GetValue();
 
                 if (groupValue == string.Empty)
                 {
