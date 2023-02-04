@@ -24,7 +24,7 @@ namespace ExcelDatabase.Editor.Parser
         private static readonly string TablePath = $"{Config.TemplatePath}/Constant/Table.txt";
         private static readonly string RowPath = $"{Config.TemplatePath}/Constant/Row.txt";
 
-        public static readonly Dictionary<string, Func<string, bool>> TypeValidators = new()
+        private static readonly Dictionary<string, Func<string, bool>> TypeValidators = new()
         {
             { "string", _ => true },
             { "int", value => int.TryParse(value, out _) },
@@ -114,7 +114,15 @@ namespace ExcelDatabase.Editor.Parser
 
         private string[] WriteScript(string script)
         {
-            return null;
+            var distDirectory = $"{Config.DistPath}/Constant";
+            if (!Directory.Exists(distDirectory))
+            {
+                Directory.CreateDirectory(distDirectory);
+            }
+
+            var distPath = $"{distDirectory}/{_tableName}.cs";
+            File.WriteAllText(distPath, script);
+            return new[] { distPath };
         }
 
         private readonly struct Row
