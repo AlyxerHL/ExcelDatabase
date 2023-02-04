@@ -1,0 +1,2 @@
+
+            public const $TYPE$ $NAME$ = $VALUE$;
