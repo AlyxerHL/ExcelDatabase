@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Newtonsoft.Json;
 using ExcelDatabase.Scripts;
 
 namespace ExcelDatabase
@@ -17,7 +16,6 @@ namespace ExcelDatabase
             }
         }
 
-        [JsonObject(MemberSerialization.Fields)]
         public class $TABLE$Type : TableType
         {#COL#        }
     }

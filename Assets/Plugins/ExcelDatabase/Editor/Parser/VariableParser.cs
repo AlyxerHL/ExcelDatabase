@@ -34,7 +34,7 @@ namespace ExcelDatabase.Editor.Parser
             var path = AssetDatabase.GetAssetPath(file);
             using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
             _sheet = new XSSFWorkbook(stream).GetSheetAt(0);
-            _tableName = file.name;
+            _tableName = ParseUtility.Format(file.name);
             _excelPath = AssetDatabase.GetAssetPath(file);
         }
 
