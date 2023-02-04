@@ -57,38 +57,40 @@ namespace ExcelDatabase.Editor.Parser
             var diffChecker = new HashSet<string>();
             for (var i = 1; i <= _sheet.LastRowNum; i++)
             {
-                var row = _sheet.GetRow(i);
-                var groupValue = row.GetCell(GroupCol).GetValue();
-                var enumValue = row.GetCell(EnumCol).GetValue();
+                var row = new Row
+                {
+                    Group = _sheet.GetRow(i).GetCell(GroupCol).GetValue(),
+                    Enum = _sheet.GetRow(i).GetCell(EnumCol).GetValue()
+                };
 
-                if (groupValue == string.Empty)
+                if (row.Group == string.Empty)
                 {
                     break;
                 }
 
-                if (char.IsDigit(groupValue, 0))
+                if (char.IsDigit(row.Group, 0))
                 {
-                    throw new ParseFailureException(_tableName, $"Enum group '{groupValue}' starts with a number");
+                    throw new ParseFailureException(_tableName, $"Enum group '{row.Group}' starts with a number");
                 }
 
-                if (enumValue == string.Empty)
+                if (row.Enum == string.Empty)
                 {
-                    throw new ParseFailureException(_tableName, $"Enum value in group '{groupValue}' is empty");
+                    throw new ParseFailureException(_tableName, $"Enum value in group '{row.Group}' is empty");
                 }
 
-                if (char.IsDigit(enumValue, 0))
-                {
-                    throw new ParseFailureException(_tableName,
-                        $"Enum value '{enumValue}' in group '{groupValue}' starts with a number");
-                }
-
-                if (!diffChecker.Add(groupValue + enumValue))
+                if (char.IsDigit(row.Enum, 0))
                 {
                     throw new ParseFailureException(_tableName,
-                        $"Duplicate enum value '{enumValue}' in group '{groupValue}'");
+                        $"Enum value '{row.Enum}' in group '{row.Group}' starts with a number");
                 }
 
-                yield return new Row(groupValue, enumValue);
+                if (!diffChecker.Add(row.Group + row.Enum))
+                {
+                    throw new ParseFailureException(_tableName,
+                        $"Duplicate enum value '{row.Enum}' in group '{row.Group}'");
+                }
+
+                yield return row;
             }
         }
 
@@ -130,16 +132,10 @@ namespace ExcelDatabase.Editor.Parser
             return new[] { distPath };
         }
 
-        private readonly struct Row
+        private struct Row
         {
-            public readonly string Group;
-            public readonly string Enum;
-
-            public Row(string groupValue, string enumValue)
-            {
-                Group = groupValue;
-                Enum = enumValue;
-            }
+            public string Group;
+            public string Enum;
         }
     }
 }

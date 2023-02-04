@@ -12,6 +12,7 @@ namespace ExcelDatabase.Editor.Parser
     {
         private const int NameRow = 0;
         private const int TypeRow = 1;
+        private const int IDCol = 0;
 
         private const string ColTemplate = "#COL#";
         private const string TableVariable = "$TABLE$";
@@ -45,7 +46,43 @@ namespace ExcelDatabase.Editor.Parser
 
         private IEnumerable<Col> ValidateCols()
         {
-            return null;
+            var nameRow = _sheet.GetRow(NameRow);
+            var typeRow = _sheet.GetRow(TypeRow);
+            if (nameRow.GetCell(IDCol).GetValue() != "ID" || typeRow.GetCell(0).GetValue() != "string")
+            {
+                throw new ParseFailureException(_tableName, "Invalid ID column");
+            }
+
+            var diffChecker = new HashSet<string>();
+            for (var i = 1; i <= nameRow.LastCellNum; i++)
+            {
+                var col = new Col
+                {
+                    Name = nameRow.GetCell(i).GetValue(),
+                    Type = typeRow.GetCell(i).GetValue()
+                };
+
+                if (col.Name == string.Empty)
+                {
+                    break;
+                }
+
+                if (char.IsDigit(col.Name, 0))
+                {
+                    throw new ParseFailureException(_tableName,
+                        $"Column name '{col.Name}' starts with a number");
+                }
+
+                if (!diffChecker.Add(col.Name))
+                {
+                    throw new ParseFailureException(_tableName, $"Duplicate column name '{col.Name}'");
+                }
+
+                // - [x] name starts with digit
+                // - [x] name duplicate
+                // - [ ] type validation
+                yield return col;
+            }
         }
 
         private string BuildScript(IEnumerable<Col> cols)
@@ -58,16 +95,10 @@ namespace ExcelDatabase.Editor.Parser
             return null;
         }
 
-        private readonly struct Col
+        private struct Col
         {
-            public readonly string Name;
-            public readonly string Type;
-
-            public Col(string name, string type)
-            {
-                Name = name;
-                Type = type;
-            }
+            public string Name;
+            public string Type;
         }
     }
 }

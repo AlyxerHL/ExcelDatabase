@@ -67,38 +67,40 @@ namespace ExcelDatabase.Editor.Parser
             var diffChecker = new HashSet<string>();
             for (var i = 1; i <= _sheet.LastRowNum; i++)
             {
-                var row = _sheet.GetRow(i);
-                var nameValue = row.GetCell(NameCol).GetValue();
-                var typeValue = row.GetCell(TypeCol).GetValue();
-                var valueValue = row.GetCell(ValueCol).GetValue();
+                var row = new Row
+                {
+                    Name = _sheet.GetRow(i).GetCell(NameCol).GetValue(),
+                    Type = _sheet.GetRow(i).GetCell(TypeCol).GetValue(),
+                    Value = _sheet.GetRow(i).GetCell(ValueCol).GetValue()
+                };
 
-                if (nameValue == string.Empty)
+                if (row.Name == string.Empty)
                 {
                     break;
                 }
 
-                if (char.IsDigit(nameValue, 0))
+                if (char.IsDigit(row.Name, 0))
                 {
-                    throw new ParseFailureException(_tableName, $"Variable name '{nameValue}' starts with a number");
+                    throw new ParseFailureException(_tableName, $"Variable name '{row.Name}' starts with a number");
                 }
 
-                if (!diffChecker.Add(nameValue))
+                if (!diffChecker.Add(row.Name))
                 {
-                    throw new ParseFailureException(_tableName, $"Duplicate variable name '{nameValue}'");
+                    throw new ParseFailureException(_tableName, $"Duplicate variable name '{row.Name}'");
                 }
 
-                if (!TypeValidators.ContainsKey(typeValue))
+                if (!TypeValidators.ContainsKey(row.Type))
                 {
-                    throw new ParseFailureException(_tableName, $"Invalid variable type '{typeValue}'");
+                    throw new ParseFailureException(_tableName, $"Invalid variable type '{row.Type}'");
                 }
 
-                if (!TypeValidators[typeValue](valueValue))
+                if (!TypeValidators[row.Type](row.Value))
                 {
                     throw new ParseFailureException(_tableName,
-                        $"Variable value '{valueValue}' is not of variable type '{typeValue}'");
+                        $"Variable value '{row.Value}' is not of variable type '{row.Type}'");
                 }
 
-                yield return new Row(nameValue, typeValue, valueValue);
+                yield return row;
             }
         }
 
@@ -139,18 +141,11 @@ namespace ExcelDatabase.Editor.Parser
             return new[] { distPath };
         }
 
-        private readonly struct Row
+        private struct Row
         {
-            public readonly string Name;
-            public readonly string Type;
-            public readonly string Value;
-
-            public Row(string name, string type, string value)
-            {
-                Name = name;
-                Type = type;
-                Value = value;
-            }
+            public string Name;
+            public string Type;
+            public string Value;
         }
     }
 }
