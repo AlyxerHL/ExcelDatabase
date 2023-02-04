@@ -47,6 +47,13 @@ namespace ExcelDatabase.Editor.Parser
 
         private IEnumerable<Row> ValidateRows()
         {
+            var firstRow = _sheet.GetRow(0);
+            if (firstRow.GetCell(GroupColumn).GetValue() != "EnumGroup" ||
+                firstRow.GetCell(EnumColumn).GetValue() != "Enum")
+            {
+                throw new ParseFailureException(_tableName, "Invalid column name");
+            }
+
             var diffChecker = new HashSet<string>();
             for (var i = 1; i <= _sheet.LastRowNum; i++)
             {

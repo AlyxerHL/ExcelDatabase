@@ -149,7 +149,7 @@ namespace ExcelDatabase.Editor.Manager
             bool IsExcelFile(Object file)
             {
                 var path = AssetDatabase.GetAssetPath(file);
-                return Path.GetExtension(path) == ".xlsx";
+                return Path.GetExtension(path) == ".xlsx" && !Path.GetFileName(path).StartsWith(Config.ExcludePrefix);
             }
 
             void Parse(IParsable parsable)

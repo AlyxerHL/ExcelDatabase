@@ -56,6 +56,14 @@ namespace ExcelDatabase.Editor.Parser
 
         private IEnumerable<Row> ValidateRows()
         {
+            var firstRow = _sheet.GetRow(0);
+            if (firstRow.GetCell(NameColumn).GetValue() != "VariableName" ||
+                firstRow.GetCell(TypeColumn).GetValue() != "DataType" ||
+                firstRow.GetCell(ValueColumn).GetValue() != "Value")
+            {
+                throw new ParseFailureException(_tableName, "Invalid column name");
+            }
+
             var diffChecker = new HashSet<string>();
             for (var i = 1; i <= _sheet.LastRowNum; i++)
             {
