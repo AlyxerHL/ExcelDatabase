@@ -25,14 +25,6 @@ namespace ExcelDatabase.Editor.Parser
         private static readonly string TablePath = $"{Config.TemplatePath}/Variable/Table.txt";
         private static readonly string RowPath = $"{Config.TemplatePath}/Variable/Row.txt";
 
-        private static readonly Dictionary<string, Func<string, bool>> TypeValidators = new()
-        {
-            { "string", _ => true },
-            { "int", value => int.TryParse(value, out _) },
-            { "float", value => float.TryParse(value, out _) },
-            { "bool", value => bool.TryParse(value, out _) }
-        };
-
         private readonly ISheet _sheet;
         private readonly string _tableName;
         private readonly string _excelPath;
@@ -89,12 +81,12 @@ namespace ExcelDatabase.Editor.Parser
                     throw new ParseFailureException(_tableName, $"Duplicate variable name '{row.Name}'");
                 }
 
-                if (!TypeValidators.ContainsKey(row.Type))
+                if (!ParseUtility.TypeValidators.ContainsKey(row.Type))
                 {
                     throw new ParseFailureException(_tableName, $"Invalid variable type '{row.Type}'");
                 }
 
-                if (!TypeValidators[row.Type](row.Value))
+                if (!ParseUtility.TypeValidators[row.Type](row.Value))
                 {
                     throw new ParseFailureException(_tableName,
                         $"Variable value '{row.Value}' is not of variable type '{row.Type}'");

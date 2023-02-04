@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -8,6 +10,14 @@ namespace ExcelDatabase.Editor.Parser
 {
     public static class ParseUtility
     {
+        public static readonly Dictionary<string, Func<string, bool>> TypeValidators = new()
+        {
+            { "string", _ => true },
+            { "int", value => int.TryParse(value, out _) },
+            { "float", value => float.TryParse(value, out _) },
+            { "bool", value => bool.TryParse(value, out _) }
+        };
+
         public static string GetCellValue(this IRow row, int index)
         {
             var cell = row.GetCell(index);
