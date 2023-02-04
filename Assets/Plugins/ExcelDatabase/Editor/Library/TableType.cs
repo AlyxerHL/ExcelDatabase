@@ -1,4 +1,4 @@
-namespace ExcelDatabase.Editor.Tools
+namespace ExcelDatabase.Editor.Library
 {
     public enum TableType
     {
