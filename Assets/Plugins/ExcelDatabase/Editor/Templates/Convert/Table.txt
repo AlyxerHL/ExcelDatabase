@@ -5,19 +5,19 @@ namespace ExcelDatabase
 {
     public static partial class Tb
     {
-        private static Table<$TABLE$_Type> $TABLE$_Instance;
+        private static Table<$TABLE$Type> _instance$TABLE$;
 
-        public static Table<$TABLE$_Type> $TABLE$
+        public static Table<$TABLE$Type> $TABLE$
         {
             get
             {
-                $TABLE$_Instance ??= new Table<$Table$_Type>("$TABLE$");
-                return $TABLE$_Instance;
+                _instance$TABLE$ ??= new Table<$Table$Type>("$TABLE$");
+                return _instance$TABLE$;
             }
         }
 
         [JsonObject(MemberSerialization.Fields)]
-        public class $TABLE$_Type : TableType
+        public class $TABLE$Type : TableType
         {#COL#        }
     }
 }

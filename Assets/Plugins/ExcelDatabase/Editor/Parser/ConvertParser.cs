@@ -4,7 +4,7 @@ using ExcelDatabase.Editor.Library;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using UnityEditor;
-using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace ExcelDatabase.Editor.Parser
 {
@@ -73,9 +73,21 @@ namespace ExcelDatabase.Editor.Parser
                     throw new ParseFailureException(_tableName, $"Duplicate column name '{col.Name}'");
                 }
 
-                // - [x] name starts with digit
-                // - [x] name duplicate
-                // - [ ] type validation
+                if (!ParseUtility.TypeValidators.ContainsKey(col.Type))
+                {
+                    bool TypeExists(string type)
+                    {
+                        var systemType = System.Type.GetType(
+                            $"ExcelDatabase.{type.Replace('.', '+')}, Assembly-CSharp-firstpass");
+                        return systemType != null;
+                    }
+
+                    if (TypeExists(col.Type) || TypeExists(col.Type + "Type"))
+                    {
+                        throw new ParseFailureException(_tableName, $"Invalid column type '{col.Type}'");
+                    }
+                }
+
                 yield return col;
             }
         }
@@ -89,11 +101,13 @@ namespace ExcelDatabase.Editor.Parser
         {
             public readonly string Name;
             public readonly string Type;
+            public readonly bool IsArray;
 
             public Col(string name, string type)
             {
                 Name = ParseUtility.Format(name);
-                Type = type;
+                Type = ParseUtility.Format(type);
+                IsArray = type.EndsWith("[]");
             }
         }
     }
