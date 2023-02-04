@@ -1,0 +1,9 @@
+namespace ExcelDatabase 
+{
+    public static class Va
+    {
+        public static class $TABLE$
+        {#ROW#
+        }
+    }
+}

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,6 +8,7 @@ using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace ExcelDatabase.Editor.Manager
 {
@@ -47,10 +49,22 @@ namespace ExcelDatabase.Editor.Manager
             window.titleContent = new GUIContent("Excel Database Manager");
         }
 
-        [MenuItem("Tools/Excel Database/Parse Selection")]
-        private static void ParseSelection()
+        [MenuItem("Tools/Excel Database/Parse Convert Tables")]
+        private static void ParseConvertTables()
         {
-            ParseTables(Selection.objects);
+            ParseTables(Selection.objects, TableType.Convert);
+        }
+
+        [MenuItem("Tools/Excel Database/Parse Enum Tables")]
+        private static void ParseEnumTables()
+        {
+            ParseTables(Selection.objects, TableType.Enum);
+        }
+
+        [MenuItem("Tools/Excel Database/Parse Variable Tables")]
+        private static void ParseVariableTables()
+        {
+            ParseTables(Selection.objects, TableType.Variable);
         }
 
         private void CreateGUI()
@@ -82,8 +96,13 @@ namespace ExcelDatabase.Editor.Manager
 
             void HandleParse(ClickEvent _)
             {
-                var obj = _selection.Select(table => AssetDatabase.LoadAssetAtPath<Object>(table.ExcelPath));
-                ParseTables(obj);
+                foreach (var parseResults
+                         in _selection.GroupBy(table => table.Type))
+                {
+                    var files = parseResults.Select(table =>
+                        AssetDatabase.LoadAssetAtPath<Object>(table.ExcelPath));
+                    ParseTables(files, parseResults.Key);
+                }
             }
 
             void HandleRemove(ClickEvent _)
@@ -125,7 +144,7 @@ namespace ExcelDatabase.Editor.Manager
             listView.onSelectionChange += HandleSelectionChange;
         }
 
-        private static void ParseTables(IEnumerable<Object> files)
+        private static void ParseTables(IEnumerable<Object> files, TableType type)
         {
             bool IsExcelFile(Object file)
             {
@@ -133,11 +152,11 @@ namespace ExcelDatabase.Editor.Manager
                 return Path.GetExtension(path) == ".xlsx";
             }
 
-            foreach (var file in files.Where(IsExcelFile))
+            void Parse(IParsable parsable)
             {
                 try
                 {
-                    var tableData = new EnumParser(file).Parse();
+                    var tableData = parsable.Parse();
                     if (ResultSet.Add(tableData))
                     {
                         SyncResultSet();
@@ -147,6 +166,20 @@ namespace ExcelDatabase.Editor.Manager
                 {
                     Debug.LogError($"{e.TableName}: {e.Message}");
                 }
+            }
+
+            foreach (var file in files.Where(IsExcelFile))
+            {
+                Parse
+                (
+                    type switch
+                    {
+                        TableType.Convert => new EnumParser(file),
+                        TableType.Enum => new EnumParser(file),
+                        TableType.Variable => new VariableParser(file),
+                        TableType.None or _ => throw new ArgumentOutOfRangeException()
+                    }
+                );
             }
 
             AssetDatabase.Refresh();

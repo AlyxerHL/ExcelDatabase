@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace ExcelDatabase.Editor.Parser
 {
-    public class EnumParser
+    public class EnumParser : IParsable
     {
         private const int GroupColumn = 0;
         private const int EnumColumn = 1;

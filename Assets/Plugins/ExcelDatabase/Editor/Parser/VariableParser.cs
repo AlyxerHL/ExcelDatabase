@@ -10,19 +10,20 @@ using Object = UnityEngine.Object;
 
 namespace ExcelDatabase.Editor.Parser
 {
-    public class ConstantParser
+    public class VariableParser : IParsable
     {
         private const int NameColumn = 0;
         private const int TypeColumn = 1;
         private const int ValueColumn = 2;
 
         private const string RowTemplate = "#ROW#";
+        private const string TableVariable = "$TABLE$";
         private const string TypeVariable = "$TYPE$";
         private const string NameVariable = "$NAME$";
         private const string ValueVariable = "$VALUE$";
 
-        private static readonly string TablePath = $"{Config.TemplatePath}/Constant/Table.txt";
-        private static readonly string RowPath = $"{Config.TemplatePath}/Constant/Row.txt";
+        private static readonly string TablePath = $"{Config.TemplatePath}/Variable/Table.txt";
+        private static readonly string RowPath = $"{Config.TemplatePath}/Variable/Row.txt";
 
         private static readonly Dictionary<string, Func<string, bool>> TypeValidators = new()
         {
@@ -36,7 +37,7 @@ namespace ExcelDatabase.Editor.Parser
         private readonly string _tableName;
         private readonly string _excelPath;
 
-        public ConstantParser(Object file)
+        public VariableParser(Object file)
         {
             var path = AssetDatabase.GetAssetPath(file);
             using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
@@ -50,7 +51,7 @@ namespace ExcelDatabase.Editor.Parser
             var rows = ValidateRows();
             var script = BuildScript(rows);
             var distPaths = WriteScript(script);
-            return new ParseResult(TableType.Constant, _tableName, _excelPath, distPaths);
+            return new ParseResult(TableType.Variable, _tableName, _excelPath, distPaths);
         }
 
         private IEnumerable<Row> ValidateRows()
@@ -70,23 +71,23 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (char.IsDigit(nameValue, 0))
                 {
-                    throw new InvalidTableException(_tableName, $"Constant name '{nameValue}' starts with a number");
+                    throw new InvalidTableException(_tableName, $"Variable name '{nameValue}' starts with a number");
                 }
 
                 if (!diffChecker.Add(nameValue))
                 {
-                    throw new InvalidTableException(_tableName, $"Duplicate constant name '{nameValue}'");
+                    throw new InvalidTableException(_tableName, $"Duplicate variable name '{nameValue}'");
                 }
 
                 if (!TypeValidators.ContainsKey(typeValue))
                 {
-                    throw new InvalidTableException(_tableName, $"Invalid constant type '{typeValue}'");
+                    throw new InvalidTableException(_tableName, $"Invalid variable type '{typeValue}'");
                 }
 
                 if (!TypeValidators[typeValue](valueValue))
                 {
                     throw new InvalidTableException(_tableName,
-                        $"The value '{valueValue}' is not of type '{typeValue}'");
+                        $"Variable value '{valueValue}' is not of variable type '{typeValue}'");
                 }
 
                 yield return new Row(nameValue, typeValue, valueValue);
@@ -97,7 +98,7 @@ namespace ExcelDatabase.Editor.Parser
         {
             var tableTemplate = File.ReadAllText(TablePath);
             var rowTemplate = File.ReadAllText(RowPath);
-            var builder = new StringBuilder(tableTemplate);
+            var builder = new StringBuilder(tableTemplate).Replace(TableVariable, _tableName);
 
             foreach (var row in rows)
             {
@@ -105,7 +106,12 @@ namespace ExcelDatabase.Editor.Parser
                     .Replace(RowTemplate, rowTemplate + RowTemplate)
                     .Replace(TypeVariable, row.Type)
                     .Replace(NameVariable, row.Name)
-                    .Replace(ValueVariable, row.Value);
+                    .Replace(ValueVariable, row.Type switch
+                    {
+                        "float" => row.Value + 'f',
+                        "bool" => row.Value.ToLower(),
+                        _ => row.Value
+                    });
             }
 
             builder.Replace(RowTemplate, string.Empty);
@@ -114,7 +120,7 @@ namespace ExcelDatabase.Editor.Parser
 
         private string[] WriteScript(string script)
         {
-            var distDirectory = $"{Config.DistPath}/Constant";
+            var distDirectory = $"{Config.DistPath}/Variable";
             if (!Directory.Exists(distDirectory))
             {
                 Directory.CreateDirectory(distDirectory);

@@ -1,6 +1,0 @@
-namespace ExcelDatabase 
-{
-    public static class Constant
-    {#ROW#
-    }
-}
