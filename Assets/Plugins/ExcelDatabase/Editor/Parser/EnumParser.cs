@@ -58,10 +58,10 @@ namespace ExcelDatabase.Editor.Parser
             for (var i = 1; i <= _sheet.LastRowNum; i++)
             {
                 var row = new Row
-                {
-                    Group = _sheet.GetRow(i).GetCellValue(GroupCol),
-                    Enum = _sheet.GetRow(i).GetCellValue(EnumCol)
-                };
+                (
+                    _sheet.GetRow(i).GetCellValue(GroupCol),
+                    _sheet.GetRow(i).GetCellValue(EnumCol)
+                );
 
                 if (row.Group == string.Empty)
                 {
@@ -119,10 +119,16 @@ namespace ExcelDatabase.Editor.Parser
             return builder.ToString();
         }
 
-        private struct Row
+        private readonly struct Row
         {
-            public string Group;
-            public string Enum;
+            public readonly string Group;
+            public readonly string Enum;
+
+            public Row(string group, string @enum)
+            {
+                Group = ParseUtility.Format(group);
+                Enum = ParseUtility.Format(@enum);
+            }
         }
     }
 }

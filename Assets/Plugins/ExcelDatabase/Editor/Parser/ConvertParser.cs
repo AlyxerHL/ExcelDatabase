@@ -56,12 +56,7 @@ namespace ExcelDatabase.Editor.Parser
             var diffChecker = new HashSet<string>();
             for (var i = 1; i <= nameRow.LastCellNum; i++)
             {
-                var col = new Col
-                {
-                    Name = nameRow.GetCellValue(i),
-                    Type = typeRow.GetCellValue(i)
-                };
-
+                var col = new Col(nameRow.GetCellValue(i), typeRow.GetCellValue(i));
                 if (col.Name == string.Empty)
                 {
                     break;
@@ -90,10 +85,16 @@ namespace ExcelDatabase.Editor.Parser
             return null;
         }
 
-        private struct Col
+        private readonly struct Col
         {
-            public string Name;
-            public string Type;
+            public readonly string Name;
+            public readonly string Type;
+
+            public Col(string name, string type)
+            {
+                Name = ParseUtility.Format(name);
+                Type = type;
+            }
         }
     }
 }

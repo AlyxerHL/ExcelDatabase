@@ -68,11 +68,11 @@ namespace ExcelDatabase.Editor.Parser
             for (var i = 1; i <= _sheet.LastRowNum; i++)
             {
                 var row = new Row
-                {
-                    Name = _sheet.GetRow(i).GetCellValue(NameCol),
-                    Type = _sheet.GetRow(i).GetCellValue(TypeCol),
-                    Value = _sheet.GetRow(i).GetCellValue(ValueCol)
-                };
+                (
+                    _sheet.GetRow(i).GetCellValue(NameCol),
+                    _sheet.GetRow(i).GetCellValue(TypeCol),
+                    _sheet.GetRow(i).GetCellValue(ValueCol)
+                );
 
                 if (row.Name == string.Empty)
                 {
@@ -128,11 +128,18 @@ namespace ExcelDatabase.Editor.Parser
             return builder.ToString();
         }
 
-        private struct Row
+        private readonly struct Row
         {
-            public string Name;
-            public string Type;
-            public string Value;
+            public readonly string Name;
+            public readonly string Type;
+            public readonly string Value;
+
+            public Row(string name, string type, string value)
+            {
+                Name = ParseUtility.Format(name);
+                Type = type;
+                Value = value;
+            }
         }
     }
 }

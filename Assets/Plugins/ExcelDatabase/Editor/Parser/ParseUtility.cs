@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.IO;
+using System.Text.RegularExpressions;
 using ExcelDatabase.Editor.Library;
 using NPOI.SS.UserModel;
 
@@ -24,6 +25,11 @@ namespace ExcelDatabase.Editor.Parser
                 CellType.Boolean => cell!.BooleanCellValue.ToString(),
                 _ => string.Empty
             };
+        }
+
+        public static string Format(string value)
+        {
+            return Regex.Replace(value, @"[^a-zA-Z.]+", string.Empty);
         }
 
         public static string WriteScript(TableType type, string tableName, string script)
