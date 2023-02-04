@@ -60,6 +60,11 @@ namespace ExcelDatabase.Editor.Parser
             for (var i = 1; i <= nameRow.LastCellNum; i++)
             {
                 var col = new Col(nameRow.GetCellValue(i), typeRow.GetCellValue(i));
+                if (col.Name.StartsWith(Config.ExcludePrefix))
+                {
+                    continue;
+                }
+
                 if (col.Name == string.Empty)
                 {
                     break;
@@ -87,8 +92,8 @@ namespace ExcelDatabase.Editor.Parser
 
                     switch (col.IsConvert)
                     {
-                        case true when TypeExists(col.Type + "Type"):
-                        case false when TypeExists(col.Type):
+                        case true when !TypeExists(col.Type + "Type"):
+                        case false when !TypeExists(col.Type):
                             throw new ParseFailureException(_tableName,
                                 $"Column type '{col.Type}' in '{col.Name}' is invalid");
                     }
@@ -111,11 +116,13 @@ namespace ExcelDatabase.Editor.Parser
             {
                 if (col.IsConvert)
                 {
-                    builder.Replace(ColTemplate, col.IsArray ? convertArrayColTemplate : convertColTemplate);
+                    builder.Replace(ColTemplate,
+                        (col.IsArray ? convertArrayColTemplate : convertColTemplate) + ColTemplate);
                 }
                 else
                 {
-                    builder.Replace(ColTemplate, col.IsArray ? generalArrayColTemplate : generalColTemplate);
+                    builder.Replace(ColTemplate,
+                        (col.IsArray ? generalArrayColTemplate : generalColTemplate) + ColTemplate);
                 }
 
                 builder
@@ -123,6 +130,7 @@ namespace ExcelDatabase.Editor.Parser
                     .Replace(NameVariable, col.Name);
             }
 
+            builder.Replace(ColTemplate, string.Empty);
             return builder.ToString();
         }
 
