@@ -3,7 +3,7 @@ using NPOI.SS.UserModel;
 
 namespace ExcelDatabase.Editor.Parser
 {
-    public static class ParserUtility
+    public static class ParseUtility
     {
         public static string GetCellValue(this IRow row, int index)
         {
