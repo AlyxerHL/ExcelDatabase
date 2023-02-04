@@ -41,8 +41,8 @@ namespace ExcelDatabase.Editor.Parser
         {
             var rows = ValidateRows();
             var script = BuildScript(rows);
-            var distPaths = WriteScript(script);
-            return new ParseResult(TableType.Enum, _tableName, _excelPath, distPaths);
+            var distPath = ParseUtility.WriteScript(TableType.Enum, _tableName, script);
+            return new ParseResult(TableType.Enum, _tableName, _excelPath, new[] { distPath });
         }
 
         private IEnumerable<Row> ValidateRows()
@@ -117,19 +117,6 @@ namespace ExcelDatabase.Editor.Parser
             builder.Replace(RowTemplate, string.Empty);
             builder.Replace(GroupTemplate, string.Empty);
             return builder.ToString();
-        }
-
-        private string[] WriteScript(string script)
-        {
-            var distDirectory = $"{Config.DistPath}/Enum";
-            if (!Directory.Exists(distDirectory))
-            {
-                Directory.CreateDirectory(distDirectory);
-            }
-
-            var distPath = $"{distDirectory}/{_tableName}.cs";
-            File.WriteAllText(distPath, script);
-            return new[] { distPath };
         }
 
         private struct Row

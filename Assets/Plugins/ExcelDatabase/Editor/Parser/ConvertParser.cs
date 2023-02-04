@@ -40,8 +40,8 @@ namespace ExcelDatabase.Editor.Parser
         {
             var rows = ValidateCols();
             var script = BuildScript(rows);
-            var distPaths = WriteScript(script);
-            return new ParseResult(TableType.Convert, _tableName, _excelPath, distPaths);
+            var distPath = ParseUtility.WriteScript(TableType.Convert, _tableName, script);
+            return new ParseResult(TableType.Convert, _tableName, _excelPath, new[] { distPath });
         }
 
         private IEnumerable<Col> ValidateCols()
@@ -86,11 +86,6 @@ namespace ExcelDatabase.Editor.Parser
         }
 
         private string BuildScript(IEnumerable<Col> cols)
-        {
-            return null;
-        }
-
-        private string[] WriteScript(string script)
         {
             return null;
         }

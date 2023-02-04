@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.IO;
+using ExcelDatabase.Editor.Library;
 using NPOI.SS.UserModel;
 
 namespace ExcelDatabase.Editor.Parser
@@ -22,6 +24,19 @@ namespace ExcelDatabase.Editor.Parser
                 CellType.Boolean => cell!.BooleanCellValue.ToString(),
                 _ => string.Empty
             };
+        }
+
+        public static string WriteScript(TableType type, string tableName, string script)
+        {
+            var distDirectory = $"{Config.DistPath}/{type}";
+            if (!Directory.Exists(distDirectory))
+            {
+                Directory.CreateDirectory(distDirectory);
+            }
+
+            var distPath = $"{distDirectory}/{tableName}.cs";
+            File.WriteAllText(distPath, script);
+            return distPath;
         }
     }
 }
