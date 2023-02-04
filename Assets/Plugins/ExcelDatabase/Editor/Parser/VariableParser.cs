@@ -71,22 +71,22 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (char.IsDigit(nameValue, 0))
                 {
-                    throw new InvalidTableException(_tableName, $"Variable name '{nameValue}' starts with a number");
+                    throw new ParseFailureException(_tableName, $"Variable name '{nameValue}' starts with a number");
                 }
 
                 if (!diffChecker.Add(nameValue))
                 {
-                    throw new InvalidTableException(_tableName, $"Duplicate variable name '{nameValue}'");
+                    throw new ParseFailureException(_tableName, $"Duplicate variable name '{nameValue}'");
                 }
 
                 if (!TypeValidators.ContainsKey(typeValue))
                 {
-                    throw new InvalidTableException(_tableName, $"Invalid variable type '{typeValue}'");
+                    throw new ParseFailureException(_tableName, $"Invalid variable type '{typeValue}'");
                 }
 
                 if (!TypeValidators[typeValue](valueValue))
                 {
-                    throw new InvalidTableException(_tableName,
+                    throw new ParseFailureException(_tableName,
                         $"Variable value '{valueValue}' is not of variable type '{typeValue}'");
                 }
 

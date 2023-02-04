@@ -61,23 +61,23 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (char.IsDigit(groupValue, 0))
                 {
-                    throw new InvalidTableException(_tableName, $"Enum group '{groupValue}' starts with a number");
+                    throw new ParseFailureException(_tableName, $"Enum group '{groupValue}' starts with a number");
                 }
 
                 if (enumValue == string.Empty)
                 {
-                    throw new InvalidTableException(_tableName, $"Enum value in group '{groupValue}' is empty");
+                    throw new ParseFailureException(_tableName, $"Enum value in group '{groupValue}' is empty");
                 }
 
                 if (char.IsDigit(enumValue, 0))
                 {
-                    throw new InvalidTableException(_tableName,
+                    throw new ParseFailureException(_tableName,
                         $"Enum value '{enumValue}' in group '{groupValue}' starts with a number");
                 }
 
                 if (!diffChecker.Add(groupValue + enumValue))
                 {
-                    throw new InvalidTableException(_tableName,
+                    throw new ParseFailureException(_tableName,
                         $"Duplicate enum value '{enumValue}' in group '{groupValue}'");
                 }
 

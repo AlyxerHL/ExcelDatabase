@@ -162,7 +162,7 @@ namespace ExcelDatabase.Editor.Manager
                         SyncResultSet();
                     }
                 }
-                catch (InvalidTableException e)
+                catch (ParseFailureException e)
                 {
                     Debug.LogError($"{e.TableName}: {e.Message}");
                 }
@@ -170,16 +170,13 @@ namespace ExcelDatabase.Editor.Manager
 
             foreach (var file in files.Where(IsExcelFile))
             {
-                Parse
-                (
-                    type switch
-                    {
-                        TableType.Convert => new EnumParser(file),
-                        TableType.Enum => new EnumParser(file),
-                        TableType.Variable => new VariableParser(file),
-                        TableType.None or _ => throw new ArgumentOutOfRangeException()
-                    }
-                );
+                Parse(type switch
+                {
+                    TableType.Convert => new EnumParser(file),
+                    TableType.Enum => new EnumParser(file),
+                    TableType.Variable => new VariableParser(file),
+                    TableType.None or _ => throw new ArgumentOutOfRangeException()
+                });
             }
 
             AssetDatabase.Refresh();
