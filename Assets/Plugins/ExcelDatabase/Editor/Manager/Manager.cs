@@ -172,7 +172,7 @@ namespace ExcelDatabase.Editor.Manager
             {
                 Parse(type switch
                 {
-                    TableType.Convert => new EnumParser(file),
+                    TableType.Convert => new ConvertParser(file),
                     TableType.Enum => new EnumParser(file),
                     TableType.Variable => new VariableParser(file),
                     TableType.None or _ => throw new ArgumentOutOfRangeException()

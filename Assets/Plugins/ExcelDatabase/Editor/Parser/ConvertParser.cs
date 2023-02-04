@@ -10,6 +10,18 @@ namespace ExcelDatabase.Editor.Parser
 {
     public class ConvertParser : IParsable
     {
+        private const int NameRow = 0;
+        private const int TypeRow = 1;
+
+        private const string ColTemplate = "#COL#";
+        private const string TableVariable = "$TABLE$";
+        private const string TypeVariable = "$TYPE$";
+        private const string NameVariable = "$NAME$";
+
+        private static readonly string TablePath = $"{Config.TemplatePath}/Convert/Table.txt";
+        private static readonly string ConvertColPath = $"{Config.TemplatePath}/Convert/ConvertCol.txt";
+        private static readonly string PrimitiveColPath = $"{Config.TemplatePath}/Convert/PrimitiveCol.txt";
+
         private readonly ISheet _sheet;
         private readonly string _tableName;
         private readonly string _excelPath;
