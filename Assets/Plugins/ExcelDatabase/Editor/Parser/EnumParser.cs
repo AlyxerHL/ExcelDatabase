@@ -88,6 +88,7 @@ namespace ExcelDatabase.Editor.Parser
         private string BuildScript(IEnumerable<Row> rows)
         {
             var tableTemplate = File.ReadAllText(TablePath);
+            var rowTemplate = File.ReadAllText(RowPath);
             var builder = new StringBuilder(tableTemplate).Replace(TableVariable, _tableName);
             string prevGroupValue = null;
 
@@ -101,7 +102,6 @@ namespace ExcelDatabase.Editor.Parser
                     builder.Replace(GroupTemplate, groupTemplate + GroupTemplate).Replace(GroupVariable, row.Group);
                 }
 
-                var rowTemplate = File.ReadAllText(RowPath);
                 builder.Replace(RowTemplate, rowTemplate + RowTemplate).Replace(RowVariable, row.Enum);
             }
 

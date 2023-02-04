@@ -1,10 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using ExcelDatabase.Editor.Tools;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using UnityEditor;
-using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace ExcelDatabase.Editor.Parser
 {
@@ -21,6 +23,14 @@ namespace ExcelDatabase.Editor.Parser
 
         private static readonly string TablePath = $"{Config.TemplatePath}/Constant/Table.txt";
         private static readonly string RowPath = $"{Config.TemplatePath}/Constant/Row.txt";
+
+        public static readonly Dictionary<string, Func<string, bool>> TypeValidators = new()
+        {
+            { "string", _ => true },
+            { "int", value => int.TryParse(value, out _) },
+            { "float", value => float.TryParse(value, out _) },
+            { "bool", value => bool.TryParse(value, out _) }
+        };
 
         private readonly ISheet _sheet;
         private readonly string _tableName;
@@ -68,18 +78,38 @@ namespace ExcelDatabase.Editor.Parser
                     throw new InvalidTableException(_tableName, $"Duplicate constant name '{nameValue}'");
                 }
 
-                // - [x] 이름이 숫자로 시작
-                // - [x] 이름 중복
-                // - [ ] 타입이 primitive type이 아님
-                // - [ ] value가 타입에 맞지 않음
-            }
+                if (!TypeValidators.ContainsKey(typeValue))
+                {
+                    throw new InvalidTableException(_tableName, $"Invalid constant type '{typeValue}'");
+                }
 
-            return null;
+                if (!TypeValidators[typeValue](valueValue))
+                {
+                    throw new InvalidTableException(_tableName,
+                        $"The value '{valueValue}' is not of type '{typeValue}'");
+                }
+
+                yield return new Row(nameValue, typeValue, valueValue);
+            }
         }
 
         private string BuildScript(IEnumerable<Row> rows)
         {
-            return null;
+            var tableTemplate = File.ReadAllText(TablePath);
+            var rowTemplate = File.ReadAllText(RowPath);
+            var builder = new StringBuilder(tableTemplate);
+
+            foreach (var row in rows)
+            {
+                builder
+                    .Replace(RowTemplate, rowTemplate + RowTemplate)
+                    .Replace(TypeVariable, row.Type)
+                    .Replace(NameVariable, row.Name)
+                    .Replace(ValueVariable, row.Value);
+            }
+
+            builder.Replace(RowTemplate, string.Empty);
+            return builder.ToString();
         }
 
         private string[] WriteScript(string script)
@@ -89,14 +119,14 @@ namespace ExcelDatabase.Editor.Parser
 
         private readonly struct Row
         {
-            public readonly string Type;
             public readonly string Name;
+            public readonly string Type;
             public readonly string Value;
 
-            public Row(string type, string name, string value)
+            public Row(string name, string type, string value)
             {
-                Type = type;
                 Name = name;
+                Type = type;
                 Value = value;
             }
         }
