@@ -175,7 +175,7 @@ namespace ExcelDatabase.Editor.Manager
                     TableType.Convert => new ConvertParser(file),
                     TableType.Enum => new EnumParser(file),
                     TableType.Variable => new VariableParser(file),
-                    TableType.None or _ => throw new ArgumentOutOfRangeException()
+                    _ => throw new ArgumentOutOfRangeException()
                 });
             }
 
