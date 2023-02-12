@@ -98,9 +98,6 @@ namespace ExcelDatabase.Editor.Parser
 
                 switch (col.TypeSpec)
                 {
-                    case Col.TypeSpecification.Variable:
-                        break;
-
                     case Col.TypeSpecification.None:
                     case Col.TypeSpecification.Primitive when !ParseUtility.TypeValidators.ContainsKey(col.Type):
                     case Col.TypeSpecification.Convert when !TypeExists(col.Type + "Type"):
@@ -108,8 +105,9 @@ namespace ExcelDatabase.Editor.Parser
                         throw new ParseFailureException(_tableName,
                             $"Column type '{col.Type}' in '{col.Name}' is invalid");
 
+                    case Col.TypeSpecification.Variable:
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        break;
                 }
 
                 yield return col;
@@ -211,7 +209,8 @@ namespace ExcelDatabase.Editor.Parser
 
         private string WriteJson(IEnumerable<Row> rows)
         {
-            var json = JsonConvert.SerializeObject(rows);
+            var dictionaries = rows.Select(row => row.Cells);
+            var json = JsonConvert.SerializeObject(dictionaries, Formatting.Indented);
             const string distDirectory = "Assets/Resources/ExcelDatabase";
             if (!Directory.Exists(distDirectory))
             {
