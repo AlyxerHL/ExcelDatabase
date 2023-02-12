@@ -21,21 +21,9 @@ namespace ExcelDatabase.Editor.Manager
         {
             get
             {
-                if (_resultSet != null)
-                {
-                    return _resultSet;
-                }
-
-                if (File.Exists(ResultPath))
-                {
-                    var json = File.ReadAllText(ResultPath);
-                    _resultSet = JsonConvert.DeserializeObject<SortedSet<ParseResult>>(json);
-                }
-                else
-                {
-                    _resultSet = new SortedSet<ParseResult>();
-                }
-
+                _resultSet ??= File.Exists(ResultPath)
+                    ? JsonConvert.DeserializeObject<SortedSet<ParseResult>>(File.ReadAllText(ResultPath))
+                    : new SortedSet<ParseResult>();
                 return _resultSet;
             }
         }
