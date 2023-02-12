@@ -209,9 +209,10 @@ namespace ExcelDatabase.Editor.Parser
 
         private string WriteJson(IEnumerable<Row> rows)
         {
-            var dictionaries = rows.Select(row => row.Cells);
-            var json = JsonConvert.SerializeObject(dictionaries, Formatting.Indented);
+            var cells = rows.Select(row => row.Cells);
+            var json = JsonConvert.SerializeObject(cells, Formatting.Indented);
             const string distDirectory = "Assets/Resources/ExcelDatabase";
+
             if (!Directory.Exists(distDirectory))
             {
                 Directory.CreateDirectory(distDirectory);
