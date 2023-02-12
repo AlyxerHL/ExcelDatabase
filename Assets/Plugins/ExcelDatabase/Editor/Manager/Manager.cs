@@ -198,7 +198,7 @@ namespace ExcelDatabase.Editor.Manager
 
         private static void SyncResultSet()
         {
-            var json = JsonConvert.SerializeObject(ResultSet);
+            var json = JsonConvert.SerializeObject(ResultSet, Formatting.Indented);
             File.WriteAllText(ResultPath, json);
         }
     }
