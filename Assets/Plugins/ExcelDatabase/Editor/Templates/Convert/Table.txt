@@ -1,18 +1,19 @@
 using System.Collections.Generic;
+using System.Linq;
 using ExcelDatabase.Scripts;
 
 namespace ExcelDatabase
 {
     public static partial class Tb
     {
-        private static Table<$TABLE$Type> _instance$TABLE$;
+        private static Table<$TABLE$Type> $TABLE$_Instance;
 
         public static Table<$TABLE$Type> $TABLE$
         {
             get
             {
-                _instance$TABLE$ ??= new Table<$TABLE$Type>("$TABLE$");
-                return _instance$TABLE$;
+                $TABLE$_Instance ??= new Table<$TABLE$Type>("$TABLE$");
+                return $TABLE$_Instance;
             }
         }
 

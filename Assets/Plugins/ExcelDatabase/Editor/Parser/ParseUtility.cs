@@ -39,7 +39,7 @@ namespace ExcelDatabase.Editor.Parser
 
         public static string Format(string value)
         {
-            return Regex.Replace(value, @"[^a-zA-Z.#]+", string.Empty);
+            return Regex.Replace(value, @"[^a-zA-Z0-9.#]+", string.Empty);
         }
 
         public static string WriteScript(TableType type, string tableName, string script)

@@ -169,7 +169,8 @@ namespace ExcelDatabase.Editor.Parser
                         }
                     }
 
-                    row.Cells[col.TypeSpec == Col.TypeSpecification.Convert ? "_id" + col.Name : col.Name] = cell;
+                    row.Cells[col.TypeSpec == Col.TypeSpecification.Convert ? col.Name + "_ID" : col.Name] =
+                        col.IsArray ? cellValues : cell;
                 }
 
                 yield return row;
