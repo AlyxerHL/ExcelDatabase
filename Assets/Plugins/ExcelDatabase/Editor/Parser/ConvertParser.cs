@@ -59,7 +59,7 @@ namespace ExcelDatabase.Editor.Parser
             var diffChecker = new HashSet<string>();
             for (var i = 1; i <= nameRow.LastCellNum; i++)
             {
-                var col = new Col(nameRow.GetCellValue(i), typeRow.GetCellValue(i));
+                var col = new Col(i, nameRow.GetCellValue(i), typeRow.GetCellValue(i));
                 if (col.Name.StartsWith(Config.ExcludePrefix))
                 {
                     continue;
@@ -136,17 +136,31 @@ namespace ExcelDatabase.Editor.Parser
 
         private readonly struct Col
         {
+            public readonly int Index;
             public readonly string Name;
             public readonly string Type;
             public readonly bool IsArray;
             public readonly bool IsConvert;
 
-            public Col(string name, string type)
+            public Col(int index, string name, string type)
             {
+                Index = index;
                 Name = ParseUtility.Format(name);
                 Type = ParseUtility.Format(type);
                 IsArray = type.EndsWith("[]");
                 IsConvert = type.StartsWith("Tb");
+            }
+        }
+
+        private readonly struct Row
+        {
+            public readonly string ID;
+            public readonly Dictionary<string, object> Cells;
+
+            public Row(string id)
+            {
+                ID = id;
+                Cells = new Dictionary<string, object> { { "ID", id } };
             }
         }
     }
