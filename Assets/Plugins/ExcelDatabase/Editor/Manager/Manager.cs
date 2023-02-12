@@ -144,12 +144,6 @@ namespace ExcelDatabase.Editor.Manager
             while (queue.TryDequeue(out var file))
             {
                 loopCount++;
-                if (loopCount > 100)
-                {
-                    Debug.LogError("Circular reference error occurred!");
-                    break;
-                }
-
                 IParser parser = type switch
                 {
                     TableType.Convert => new ConvertParser(file),
@@ -166,13 +160,16 @@ namespace ExcelDatabase.Editor.Manager
                         SyncResultSet();
                     }
                 }
-                catch (ParseFailException e)
+                catch (ParserException e)
                 {
-                    Debug.LogError($"{e.TableName}: {e.Message}");
-                }
-                catch (ParseYieldException)
-                {
-                    queue.Enqueue(file);
+                    if (e.Yielding && loopCount < 100)
+                    {
+                        queue.Enqueue(file);
+                    }
+                    else
+                    {
+                        Debug.LogError($"{e.TableName}: {e.Message}");
+                    }
                 }
             }
 
