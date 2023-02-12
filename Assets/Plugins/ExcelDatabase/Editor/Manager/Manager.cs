@@ -117,6 +117,12 @@ namespace ExcelDatabase.Editor.Manager
 
         private void ListTables()
         {
+            var listView = rootVisualElement.Q<ListView>();
+            listView.itemsSource = ResultSet.ToList();
+            listView.makeItem = MakeItem;
+            listView.bindItem = BindItem;
+            listView.onSelectionChange += HandleSelectionChange;
+
             VisualElement MakeItem()
             {
                 var label = new Label();
@@ -136,16 +142,23 @@ namespace ExcelDatabase.Editor.Manager
             {
                 _selection = selection.Cast<ParseResult>();
             }
-
-            var listView = rootVisualElement.Q<ListView>();
-            listView.itemsSource = ResultSet.ToList();
-            listView.makeItem = MakeItem;
-            listView.bindItem = BindItem;
-            listView.onSelectionChange += HandleSelectionChange;
         }
 
         private static void ParseTables(IEnumerable<Object> files, TableType type)
         {
+            foreach (var file in files.Where(IsExcelFile))
+            {
+                Parse(type switch
+                {
+                    TableType.Convert => new ConvertParser(file),
+                    TableType.Enum => new EnumParser(file),
+                    TableType.Variable => new VariableParser(file),
+                    _ => throw new ArgumentOutOfRangeException()
+                });
+            }
+
+            AssetDatabase.Refresh();
+
             bool IsExcelFile(Object file)
             {
                 var path = AssetDatabase.GetAssetPath(file);
@@ -167,19 +180,6 @@ namespace ExcelDatabase.Editor.Manager
                     Debug.LogError($"{e.TableName}: {e.Message}");
                 }
             }
-
-            foreach (var file in files.Where(IsExcelFile))
-            {
-                Parse(type switch
-                {
-                    TableType.Convert => new ConvertParser(file),
-                    TableType.Enum => new EnumParser(file),
-                    TableType.Variable => new VariableParser(file),
-                    _ => throw new ArgumentOutOfRangeException()
-                });
-            }
-
-            AssetDatabase.Refresh();
         }
 
         private static void RemoveTables(IEnumerable<ParseResult> tables)
