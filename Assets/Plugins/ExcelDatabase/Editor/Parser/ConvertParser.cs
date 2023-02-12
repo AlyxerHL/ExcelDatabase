@@ -59,7 +59,7 @@ namespace ExcelDatabase.Editor.Parser
         {
             var nameRow = _sheet.GetRow(NameRow);
             var typeRow = _sheet.GetRow(TypeRow);
-            if (nameRow.GetCellValue(IDCol) != "ID" || typeRow.GetCellValue(0) != "string")
+            if (nameRow.GetCellValue(IDCol) != "ID" || typeRow.GetCellValue(IDCol) != "string")
             {
                 throw new ParseFailureException(_tableName, "Invalid ID column");
             }
