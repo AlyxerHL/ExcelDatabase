@@ -1,6 +1,6 @@
 namespace ExcelDatabase.Editor.Parser
 {
-    public interface IParsable
+    public interface IParser
     {
         ParseResult Parse();
     }

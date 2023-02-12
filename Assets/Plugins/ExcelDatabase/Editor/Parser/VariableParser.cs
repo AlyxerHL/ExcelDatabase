@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace ExcelDatabase.Editor.Parser
 {
-    public class VariableParser : IParsable
+    public class VariableParser : IParser
     {
         private const int NameCol = 0;
         private const int TypeCol = 1;
@@ -53,7 +53,7 @@ namespace ExcelDatabase.Editor.Parser
                 firstRow.GetCellValue(TypeCol) != "DataType" ||
                 firstRow.GetCellValue(ValueCol) != "Value")
             {
-                throw new ParseFailureException(_tableName, "Invalid column name");
+                throw new ParseFailException(_tableName, "Invalid column name");
             }
 
             var diffChecker = new HashSet<string>();
@@ -73,22 +73,22 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (char.IsDigit(row.Name, 0))
                 {
-                    throw new ParseFailureException(_tableName, $"Variable name '{row.Name}' starts with a number");
+                    throw new ParseFailException(_tableName, $"Variable name '{row.Name}' starts with a number");
                 }
 
                 if (!diffChecker.Add(row.Name))
                 {
-                    throw new ParseFailureException(_tableName, $"Duplicate variable name '{row.Name}'");
+                    throw new ParseFailException(_tableName, $"Duplicate variable name '{row.Name}'");
                 }
 
                 if (!ParseUtility.TypeValidators.ContainsKey(row.Type))
                 {
-                    throw new ParseFailureException(_tableName, $"Invalid variable type '{row.Type}'");
+                    throw new ParseFailException(_tableName, $"Invalid variable type '{row.Type}'");
                 }
 
                 if (!ParseUtility.TypeValidators[row.Type](row.Value))
                 {
-                    throw new ParseFailureException(_tableName,
+                    throw new ParseFailException(_tableName,
                         $"Variable value '{row.Value}' is not of variable type '{row.Type}'");
                 }
 

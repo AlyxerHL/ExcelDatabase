@@ -134,40 +134,49 @@ namespace ExcelDatabase.Editor.Manager
 
         private static void ParseTables(IEnumerable<Object> files, TableType type)
         {
-            foreach (var file in files.Where(IsExcelFile))
+            var loopCount = 0;
+            var queue = new Queue<Object>(files.Where(file =>
             {
-                Parse(type switch
+                var path = AssetDatabase.GetAssetPath(file);
+                return Path.GetExtension(path) == ".xlsx";
+            }));
+
+            while (queue.TryDequeue(out var file))
+            {
+                loopCount++;
+                if (loopCount > 100)
+                {
+                    Debug.LogError("Circular reference error occurred!");
+                    break;
+                }
+
+                IParser parser = type switch
                 {
                     TableType.Convert => new ConvertParser(file),
                     TableType.Enum => new EnumParser(file),
                     TableType.Variable => new VariableParser(file),
                     _ => throw new ArgumentOutOfRangeException()
-                });
-            }
+                };
 
-            AssetDatabase.Refresh();
-
-            bool IsExcelFile(Object file)
-            {
-                var path = AssetDatabase.GetAssetPath(file);
-                return Path.GetExtension(path) == ".xlsx";
-            }
-
-            void Parse(IParsable parsable)
-            {
                 try
                 {
-                    var tableData = parsable.Parse();
-                    if (ResultSet.Add(tableData))
+                    var result = parser.Parse();
+                    if (ResultSet.Add(result))
                     {
                         SyncResultSet();
                     }
                 }
-                catch (ParseFailureException e)
+                catch (ParseFailException e)
                 {
                     Debug.LogError($"{e.TableName}: {e.Message}");
                 }
+                catch (ParseYieldException)
+                {
+                    queue.Enqueue(file);
+                }
             }
+
+            AssetDatabase.Refresh();
         }
 
         private static void RemoveTables(IEnumerable<ParseResult> tables)

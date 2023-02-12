@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace ExcelDatabase.Editor.Parser
 {
-    public class EnumParser : IParsable
+    public class EnumParser : IParser
     {
         private const int GroupCol = 0;
         private const int EnumCol = 1;
@@ -51,7 +51,7 @@ namespace ExcelDatabase.Editor.Parser
             if (firstRow.GetCellValue(GroupCol) != "EnumGroup" ||
                 firstRow.GetCellValue(EnumCol) != "Enum")
             {
-                throw new ParseFailureException(_tableName, "Invalid column name");
+                throw new ParseFailException(_tableName, "Invalid column name");
             }
 
             var diffChecker = new HashSet<string>();
@@ -70,23 +70,23 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (char.IsDigit(row.Group, 0))
                 {
-                    throw new ParseFailureException(_tableName, $"Enum group '{row.Group}' starts with a number");
+                    throw new ParseFailException(_tableName, $"Enum group '{row.Group}' starts with a number");
                 }
 
                 if (row.Enum == string.Empty)
                 {
-                    throw new ParseFailureException(_tableName, $"Enum value in group '{row.Group}' is empty");
+                    throw new ParseFailException(_tableName, $"Enum value in group '{row.Group}' is empty");
                 }
 
                 if (char.IsDigit(row.Enum, 0))
                 {
-                    throw new ParseFailureException(_tableName,
+                    throw new ParseFailException(_tableName,
                         $"Enum value '{row.Enum}' in group '{row.Group}' starts with a number");
                 }
 
                 if (!diffChecker.Add(row.Group + row.Enum))
                 {
-                    throw new ParseFailureException(_tableName,
+                    throw new ParseFailException(_tableName,
                         $"Duplicate enum value '{row.Enum}' in group '{row.Group}'");
                 }
 
