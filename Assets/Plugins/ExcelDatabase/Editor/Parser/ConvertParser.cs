@@ -202,7 +202,7 @@ namespace ExcelDatabase.Editor.Parser
                 }
 
                 builder
-                    .Replace(TypeVariable, col.Type)
+                    .Replace(TypeVariable, col.TypeSpec == Col.TypeSpecification.Variable ? "string" : col.Type)
                     .Replace(NameVariable, col.Name);
             }
 
