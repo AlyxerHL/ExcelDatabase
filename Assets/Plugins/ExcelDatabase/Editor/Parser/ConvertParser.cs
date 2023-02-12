@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using ExcelDatabase.Editor.Library;
+using Newtonsoft.Json;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
 using UnityEditor;
@@ -49,8 +50,9 @@ namespace ExcelDatabase.Editor.Parser
             var cols = ValidateCols().ToArray();
             var rows = ValidateRows(cols);
             var script = BuildScript(cols);
+            var jsonPath = WriteJson(rows);
             var distPath = ParseUtility.WriteScript(TableType.Convert, _tableName, script);
-            return new ParseResult(TableType.Convert, _tableName, _excelPath, new[] { distPath });
+            return new ParseResult(TableType.Convert, _tableName, _excelPath, new[] { distPath, jsonPath });
         }
 
         private IEnumerable<Col> ValidateCols()
@@ -169,7 +171,7 @@ namespace ExcelDatabase.Editor.Parser
                         }
                     }
 
-                    row.Cells.Add(col.Name, cell);
+                    row.Cells[col.TypeSpec == Col.TypeSpecification.Convert ? "_id" + col.Name : col.Name] = cell;
                 }
 
                 yield return row;
@@ -205,6 +207,20 @@ namespace ExcelDatabase.Editor.Parser
 
             builder.Replace(ColTemplate, string.Empty);
             return builder.ToString();
+        }
+
+        private string WriteJson(IEnumerable<Row> rows)
+        {
+            var json = JsonConvert.SerializeObject(rows);
+            const string distDirectory = "Assets/Resources/ExcelDatabase";
+            if (!Directory.Exists(distDirectory))
+            {
+                Directory.CreateDirectory(distDirectory);
+            }
+
+            var distPath = $"{distDirectory}/{_tableName}.json";
+            File.WriteAllText(distPath, json);
+            return distPath;
         }
 
         private readonly struct Col

@@ -12,7 +12,7 @@ namespace ExcelDatabase.Scripts
 
         public Table(string name)
         {
-            var json = Resources.Load<TextAsset>($"ExcelDatabase/{name}/Data");
+            var json = Resources.Load<TextAsset>($"ExcelDatabase/{name}");
             _collection = JsonConvert
                 .DeserializeObject<T[]>(json.text)?
                 .ToDictionary(row => row.ID);
