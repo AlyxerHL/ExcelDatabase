@@ -148,21 +148,22 @@ namespace ExcelDatabase.Editor.Parser
                     if (cell == string.Empty)
                     {
                         throw new ParserException(_tableName,
-                            $"An empty cell exists in '{col.Name}' of '{row.ID}'");
+                            $"An empty cell exists in column '{col.Name}' of '{row.ID}'");
                     }
 
                     var cellValues = cell.Split(ArraySeparator);
                     if (!col.IsArray && cellValues.Length > 1)
                     {
                         throw new ParserException(_tableName,
-                            $"The cell in '{col.Name}' of '{row.ID}' is array, but its type is not an array");
+                            $"The cell in column '{col.Name}' of '{row.ID}' is array, " +
+                            $"but its type is not an array");
                     }
 
                     if (col.TypeSpec == Col.TypeSpecification.Primitive &&
                         cellValues.Any(cellValue => !ParseUtility.TypeValidators[col.Type](cellValue)))
                     {
                         throw new ParserException(_tableName,
-                            $"The cell in '{col.Name}' of '{row.ID}' type mismatch");
+                            $"The cell in column '{col.Name}' of '{row.ID}' type mismatch");
                     }
 
                     if (col.TypeSpec == Col.TypeSpecification.Enum)
@@ -172,7 +173,7 @@ namespace ExcelDatabase.Editor.Parser
                         if (type == null || cellValues.Any(cellValue => !Enum.IsDefined(type, cellValue)))
                         {
                             throw new ParserException(_tableName,
-                                $"The cell in '{col.Name}' of '{row.ID}' type mismatch");
+                                $"The cell in column '{col.Name}' of '{row.ID}' type mismatch");
                         }
                     }
 
