@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -5,8 +6,8 @@ using System.Text;
 using ExcelDatabase.Editor.Library;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
-using UnityEngine;
 using UnityEditor;
+using Object = UnityEngine.Object;
 
 namespace ExcelDatabase.Editor.Parser
 {
@@ -88,7 +89,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 bool TypeExists(string type)
                 {
-                    var systemType = System.Type.GetType(
+                    var systemType = Type.GetType(
                         $"ExcelDatabase.{type.Replace('.', '+')}, Assembly-CSharp-firstpass");
                     return systemType != null;
                 }
@@ -106,7 +107,7 @@ namespace ExcelDatabase.Editor.Parser
                             $"Column type '{col.Type}' in '{col.Name}' is invalid");
 
                     default:
-                        throw new System.ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException();
                 }
 
                 yield return col;
@@ -150,10 +151,22 @@ namespace ExcelDatabase.Editor.Parser
                             $"The cell in '{col.Name}' of '{row.ID}' is array, but its type is not an array");
                     }
 
-                    if (cellValues.Any(cellValue => !ParseUtility.TypeValidators[col.Type](cellValue)))
+                    if (col.TypeSpec == Col.TypeSpecification.Primitive &&
+                        cellValues.Any(cellValue => !ParseUtility.TypeValidators[col.Type](cellValue)))
                     {
                         throw new ParseFailureException(_tableName,
                             $"The cell in '{col.Name}' of '{row.ID}' type mismatch");
+                    }
+
+                    if (col.TypeSpec == Col.TypeSpecification.Enum)
+                    {
+                        var type = Type.GetType(
+                            $"ExcelDatabase.{col.Type.Replace('.', '+')}, Assembly-CSharp-firstpass");
+                        if (type == null || cellValues.Any(cellValue => !Enum.IsDefined(type, cellValue)))
+                        {
+                            throw new ParseFailureException(_tableName,
+                                $"The cell in '{col.Name}' of '{row.ID}' type mismatch");
+                        }
                     }
 
                     row.Cells.Add(col.Name, cell);
