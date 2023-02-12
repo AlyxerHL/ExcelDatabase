@@ -246,7 +246,7 @@ namespace ExcelDatabase.Editor.Parser
                     true => TypeSpecification.Primitive,
                     false when Type.StartsWith("Tb") => TypeSpecification.Convert,
                     false when Type.StartsWith("Em") => TypeSpecification.Enum,
-                    false when Type.StartsWith("Va") => TypeSpecification.Variable,
+                    false when Type.StartsWith("DesignVariable") => TypeSpecification.Variable,
                     _ => TypeSpecification.None
                 };
             }
