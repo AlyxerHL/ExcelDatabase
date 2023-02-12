@@ -134,16 +134,8 @@ namespace ExcelDatabase.Editor.Manager
 
         private static void ParseTables(IEnumerable<Object> files, TableType type)
         {
-            var loopCount = 0;
-            var queue = new Queue<Object>(files.Where(file =>
+            foreach (var file in files.Where(IsExcelFile))
             {
-                var path = AssetDatabase.GetAssetPath(file);
-                return Path.GetExtension(path) == ".xlsx";
-            }));
-
-            while (queue.TryDequeue(out var file))
-            {
-                loopCount++;
                 IParser parser = type switch
                 {
                     TableType.Convert => new ConvertParser(file),
@@ -162,18 +154,17 @@ namespace ExcelDatabase.Editor.Manager
                 }
                 catch (ParserException e)
                 {
-                    if (e.Yielding && loopCount < 100)
-                    {
-                        queue.Enqueue(file);
-                    }
-                    else
-                    {
-                        Debug.LogError($"{e.TableName}: {e.Message}");
-                    }
+                    Debug.LogError($"{e.TableName}: {e.Message}");
                 }
             }
 
             AssetDatabase.Refresh();
+
+            bool IsExcelFile(Object file)
+            {
+                var path = AssetDatabase.GetAssetPath(file);
+                return Path.GetExtension(path) == ".xlsx";
+            }
         }
 
         private static void RemoveTables(IEnumerable<ParseResult> tables)
