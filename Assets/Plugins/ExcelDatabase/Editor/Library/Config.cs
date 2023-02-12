@@ -25,6 +25,5 @@ namespace ExcelDatabase.Editor.Library
 
         public static readonly string DistPath = $"{Root}/Dist";
         public static readonly string TemplatePath = $"{Root}/Editor/Templates";
-        public const string ExcludePrefix = "#";
     }
 }
