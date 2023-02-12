@@ -48,7 +48,7 @@ namespace ExcelDatabase.Editor.Parser
         private IEnumerable<Row> ValidateRows()
         {
             var firstRow = _sheet.GetRow(0);
-            if (firstRow.GetCellValue(GroupCol) != "EnumGroup" ||
+            if (firstRow?.GetCellValue(GroupCol) != "EnumGroup" ||
                 firstRow.GetCellValue(EnumCol) != "Enum")
             {
                 throw new ParseFailException(_tableName, "Invalid column name");
@@ -57,10 +57,16 @@ namespace ExcelDatabase.Editor.Parser
             var diffChecker = new HashSet<string>();
             for (var i = 1; i <= _sheet.LastRowNum; i++)
             {
+                var poiRow = _sheet.GetRow(i);
+                if (poiRow == null)
+                {
+                    break;
+                }
+
                 var row = new Row
                 (
-                    _sheet.GetRow(i).GetCellValue(GroupCol),
-                    _sheet.GetRow(i).GetCellValue(EnumCol)
+                    poiRow.GetCellValue(GroupCol),
+                    poiRow.GetCellValue(EnumCol)
                 );
 
                 if (row.Group == string.Empty)

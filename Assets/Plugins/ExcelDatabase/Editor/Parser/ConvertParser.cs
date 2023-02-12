@@ -59,7 +59,7 @@ namespace ExcelDatabase.Editor.Parser
         {
             var nameRow = _sheet.GetRow(NameRow);
             var typeRow = _sheet.GetRow(TypeRow);
-            if (nameRow.GetCellValue(IDCol) != "ID" || typeRow.GetCellValue(IDCol) != "string")
+            if (nameRow?.GetCellValue(IDCol) != "ID" || typeRow?.GetCellValue(IDCol) != "string")
             {
                 throw new ParseFailException(_tableName, "Invalid ID column");
             }
@@ -121,7 +121,13 @@ namespace ExcelDatabase.Editor.Parser
             var diffChecker = new HashSet<string>();
             for (var i = 2; i <= _sheet.LastRowNum; i++)
             {
-                var row = new Row(_sheet.GetRow(i).GetCellValue(IDCol));
+                var poiRow = _sheet.GetRow(i);
+                if (poiRow == null)
+                {
+                    break;
+                }
+
+                var row = new Row(poiRow.GetCellValue(IDCol));
                 if (row.ID == string.Empty)
                 {
                     break;
@@ -134,7 +140,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 foreach (var col in cols)
                 {
-                    var cell = _sheet.GetRow(i).GetCellValue(col.Index);
+                    var cell = poiRow.GetCellValue(col.Index);
                     if (cell.StartsWith(ExcludePrefix))
                     {
                         continue;

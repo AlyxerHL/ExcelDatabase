@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -49,7 +48,7 @@ namespace ExcelDatabase.Editor.Parser
         private IEnumerable<Row> ValidateRows()
         {
             var firstRow = _sheet.GetRow(0);
-            if (firstRow.GetCellValue(NameCol) != "VariableName" ||
+            if (firstRow?.GetCellValue(NameCol) != "VariableName" ||
                 firstRow.GetCellValue(TypeCol) != "DataType" ||
                 firstRow.GetCellValue(ValueCol) != "Value")
             {
@@ -59,11 +58,17 @@ namespace ExcelDatabase.Editor.Parser
             var diffChecker = new HashSet<string>();
             for (var i = 1; i <= _sheet.LastRowNum; i++)
             {
+                var poiRow = _sheet.GetRow(i);
+                if (poiRow == null)
+                {
+                    break;
+                }
+
                 var row = new Row
                 (
-                    _sheet.GetRow(i).GetCellValue(NameCol),
-                    _sheet.GetRow(i).GetCellValue(TypeCol),
-                    _sheet.GetRow(i).GetCellValue(ValueCol)
+                    poiRow.GetCellValue(NameCol),
+                    poiRow.GetCellValue(TypeCol),
+                    poiRow.GetCellValue(ValueCol)
                 );
 
                 if (row.Name == string.Empty)
