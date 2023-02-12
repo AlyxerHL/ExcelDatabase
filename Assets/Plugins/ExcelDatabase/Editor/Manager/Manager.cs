@@ -89,6 +89,10 @@ namespace ExcelDatabase.Editor.Manager
 
         private void RegisterButtons()
         {
+            rootVisualElement.Q<Button>("edit-button").RegisterCallback<ClickEvent>(HandleEdit);
+            rootVisualElement.Q<Button>("parse-button").RegisterCallback<ClickEvent>(HandleParse);
+            rootVisualElement.Q<Button>("remove-button").RegisterCallback<ClickEvent>(HandleRemove);
+
             void HandleEdit(ClickEvent _)
             {
                 Debug.Log("Edit Button");
@@ -109,10 +113,6 @@ namespace ExcelDatabase.Editor.Manager
             {
                 RemoveTables(_selection);
             }
-
-            rootVisualElement.Q<Button>("edit-button").RegisterCallback<ClickEvent>(HandleEdit);
-            rootVisualElement.Q<Button>("parse-button").RegisterCallback<ClickEvent>(HandleParse);
-            rootVisualElement.Q<Button>("remove-button").RegisterCallback<ClickEvent>(HandleRemove);
         }
 
         private void ListTables()
