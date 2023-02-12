@@ -103,7 +103,7 @@ namespace ExcelDatabase.Editor.Parser
                     case Col.TypeSpecification.Convert when !TypeExists(col.Type + "Type"):
                     case Col.TypeSpecification.Enum when !TypeExists(col.Type):
                         throw new ParserException(_tableName,
-                            $"Type '{col.Type}' of column'{col.Name}' is invalid");
+                            $"Type '{col.Type}' of column '{col.Name}' is invalid");
 
                     case Col.TypeSpecification.Variable:
                     default:
