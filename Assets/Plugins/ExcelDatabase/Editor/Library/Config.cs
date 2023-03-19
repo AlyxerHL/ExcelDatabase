@@ -1,18 +1,13 @@
 using System.IO;
 using UnityEditor;
 
-namespace ExcelDatabase.Editor.Library
-{
-    public static class Config
-    {
+namespace ExcelDatabase.Editor.Library {
+    public static class Config {
         private static string _root;
 
-        private static string Root
-        {
-            get
-            {
-                if (_root != null)
-                {
+        private static string Root {
+            get {
+                if (_root != null) {
                     return _root;
                 }
 

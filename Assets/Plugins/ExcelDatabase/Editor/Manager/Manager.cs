@@ -1,3 +1,5 @@
+#pragma warning disable IDE0051, RCS1213
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,17 +12,13 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
-namespace ExcelDatabase.Editor.Manager
-{
-    public class Manager : EditorWindow
-    {
+namespace ExcelDatabase.Editor.Manager {
+    public class Manager : EditorWindow {
         private static IEnumerable<ParseResult> _selection;
         private static SortedSet<ParseResult> _resultSet;
 
-        private static SortedSet<ParseResult> ResultSet
-        {
-            get
-            {
+        private static SortedSet<ParseResult> ResultSet {
+            get {
                 _resultSet ??= File.Exists(ResultPath)
                     ? JsonConvert.DeserializeObject<SortedSet<ParseResult>>(File.ReadAllText(ResultPath))
                     : new SortedSet<ParseResult>();
@@ -31,149 +29,122 @@ namespace ExcelDatabase.Editor.Manager
         private static string ResultPath => $"{Config.DistPath}/ParseResult.json";
 
         [MenuItem("Tools/Excel Database/Show Manager")]
-        private static void ShowManager()
-        {
+        private static void ShowManager() {
             var window = GetWindow<Manager>();
             window.titleContent = new GUIContent("Excel Database Manager");
         }
 
         [MenuItem("Tools/Excel Database/Parse Convert Tables")]
-        private static void ParseConvertTables()
-        {
+        private static void ParseConvertTables() {
             ParseTables(Selection.objects, TableType.Convert);
         }
 
         [MenuItem("Tools/Excel Database/Parse Enum Tables")]
-        private static void ParseEnumTables()
-        {
+        private static void ParseEnumTables() {
             ParseTables(Selection.objects, TableType.Enum);
         }
 
         [MenuItem("Tools/Excel Database/Parse Variable Tables")]
-        private static void ParseVariableTables()
-        {
+        private static void ParseVariableTables() {
             ParseTables(Selection.objects, TableType.Variable);
         }
 
-        private void CreateGUI()
-        {
+        private void CreateGUI() {
             ApplyUI();
             RegisterButtons();
             ListTables();
         }
 
-        private void ApplyUI()
-        {
-            var visualTree =
-                AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                    "Assets/Plugins/ExcelDatabase/Editor/Manager/Manager.uxml");
+        private void ApplyUI() {
+            var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
+                "Assets/Plugins/ExcelDatabase/Editor/Manager/Manager.uxml"
+            );
             rootVisualElement.Add(visualTree.Instantiate());
 
-            var styleSheet =
-                AssetDatabase.LoadAssetAtPath<StyleSheet>(
-                    "Assets/Plugins/ExcelDatabase/Editor/Manager/Manager.uss");
+            var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(
+                "Assets/Plugins/ExcelDatabase/Editor/Manager/Manager.uss"
+            );
             rootVisualElement.styleSheets.Add(styleSheet);
         }
 
-        private void RegisterButtons()
-        {
+        private void RegisterButtons(
+) {
             rootVisualElement.Q<Button>("edit-button").RegisterCallback<ClickEvent>(HandleEdit);
             rootVisualElement.Q<Button>("parse-button").RegisterCallback<ClickEvent>(HandleParse);
             rootVisualElement.Q<Button>("remove-button").RegisterCallback<ClickEvent>(HandleRemove);
 
-            void HandleEdit(ClickEvent _)
-            {
+            void HandleEdit(ClickEvent _) {
                 Debug.Log("Edit Button");
             }
 
-            void HandleParse(ClickEvent _)
-            {
-                foreach (var parseResults
-                         in _selection.GroupBy(table => table.Type))
-                {
-                    var files = parseResults.Select(table =>
-                        AssetDatabase.LoadAssetAtPath<Object>(table.ExcelPath));
+            void HandleParse(ClickEvent _) {
+                foreach (var parseResults in _selection.GroupBy(table => table.Type)) {
+                    var files = parseResults.Select(table => AssetDatabase.LoadAssetAtPath<Object>(table.ExcelPath));
                     ParseTables(files, parseResults.Key);
                 }
             }
 
-            void HandleRemove(ClickEvent _)
-            {
+            void HandleRemove(ClickEvent _) {
                 RemoveTables(_selection);
             }
         }
 
-        private void ListTables()
-        {
+        private void ListTables() {
             var listView = rootVisualElement.Q<ListView>();
             listView.itemsSource = ResultSet.ToList();
             listView.makeItem = MakeItem;
             listView.bindItem = BindItem;
             listView.onSelectionChange += HandleSelectionChange;
 
-            VisualElement MakeItem()
-            {
+            VisualElement MakeItem() {
                 var label = new Label();
                 label.AddToClassList("table-label");
                 return label;
             }
 
-            void BindItem(VisualElement e, int i)
-            {
-                if (e is Label label)
-                {
+            void BindItem(VisualElement e, int i) {
+                if (e is Label label) {
                     label.text = ResultSet.ElementAt(i).ToString();
                 }
             }
 
-            void HandleSelectionChange(IEnumerable<object> selection)
-            {
+            void HandleSelectionChange(IEnumerable<object> selection) {
                 _selection = selection.Cast<ParseResult>();
             }
         }
 
-        private static void ParseTables(IEnumerable<Object> files, TableType type)
-        {
-            foreach (var file in files.Where(IsExcelFile))
-            {
-                IParser parser = type switch
-                {
+        private static void ParseTables(IEnumerable<Object> files, TableType type) {
+            foreach (var file in files.Where(IsExcelFile)) {
+                IParser parser = type switch {
                     TableType.Convert => new ConvertParser(file),
                     TableType.Enum => new EnumParser(file),
                     TableType.Variable => new VariableParser(file),
                     _ => throw new ArgumentOutOfRangeException()
                 };
 
-                try
-                {
+                try {
                     var result = parser.Parse();
-                    if (ResultSet.Add(result))
-                    {
+                    if (ResultSet.Add(result)) {
                         SyncResultSet();
                     }
                 }
-                catch (ParserException e)
-                {
+                catch (ParserException e) {
                     Debug.LogError($"{e.TableName}: {e.Message}");
                 }
             }
 
             AssetDatabase.Refresh();
 
-            bool IsExcelFile(Object file)
-            {
+            static bool IsExcelFile(Object file) {
                 var path = AssetDatabase.GetAssetPath(file);
                 return Path.GetExtension(path) == ".xlsx";
             }
         }
 
-        private static void RemoveTables(IEnumerable<ParseResult> tables)
-        {
-            foreach (var table in tables)
-            {
+        private static void RemoveTables(IEnumerable<ParseResult> tables) {
+            foreach (var table in tables) {
                 ResultSet.Remove(table);
-                foreach (var distPath in table.DistPaths)
-                {
+                foreach (var distPath in table.DistPaths) {
                     AssetDatabase.DeleteAsset(distPath);
                 }
             }
@@ -181,8 +152,7 @@ namespace ExcelDatabase.Editor.Manager
             SyncResultSet();
         }
 
-        private static void SyncResultSet()
-        {
+        private static void SyncResultSet() {
             var json = JsonConvert.SerializeObject(ResultSet, Formatting.Indented);
             File.WriteAllText(ResultPath, json);
         }

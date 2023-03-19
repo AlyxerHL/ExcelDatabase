@@ -6,30 +6,24 @@ using System.Text.RegularExpressions;
 using ExcelDatabase.Editor.Library;
 using NPOI.SS.UserModel;
 
-namespace ExcelDatabase.Editor.Parser
-{
-    public static class ParseUtility
-    {
-        public static readonly Dictionary<string, Func<string, bool>> TypeValidators = new()
-        {
+namespace ExcelDatabase.Editor.Parser {
+    public static class ParseUtility {
+        public static readonly Dictionary<string, Func<string, bool>> TypeValidators = new() {
             { "string", _ => true },
             { "int", value => int.TryParse(value, out _) },
             { "float", value => float.TryParse(value, out _) },
             { "bool", value => bool.TryParse(value, out _) }
         };
 
-        public static string GetCellValue(this IRow row, int index)
-        {
+        public static string GetCellValue(this IRow row, int index) {
             var cell = row.GetCell(index);
-            var cellType = cell switch
-            {
+            var cellType = cell switch {
                 null => CellType.Blank,
                 _ when cell.CellType == CellType.Formula => cell.CachedFormulaResultType,
                 _ => cell.CellType
             };
 
-            return cellType switch
-            {
+            return cellType switch {
                 CellType.String => cell!.StringCellValue,
                 CellType.Numeric => cell!.NumericCellValue.ToString(CultureInfo.InvariantCulture),
                 CellType.Boolean => cell!.BooleanCellValue.ToString(),
@@ -37,16 +31,13 @@ namespace ExcelDatabase.Editor.Parser
             };
         }
 
-        public static string Format(string value)
-        {
-            return Regex.Replace(value, @"[^a-zA-Z0-9.#]+", string.Empty);
+        public static string Format(string value) {
+            return Regex.Replace(value, "[^a-zA-Z0-9.#]+", string.Empty);
         }
 
-        public static string WriteScript(TableType type, string tableName, string script)
-        {
+        public static string WriteScript(TableType type, string tableName, string script) {
             var distDirectory = $"{Config.DistPath}/{type}";
-            if (!Directory.Exists(distDirectory))
-            {
+            if (!Directory.Exists(distDirectory)) {
                 Directory.CreateDirectory(distDirectory);
             }
 
