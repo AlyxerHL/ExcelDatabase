@@ -180,5 +180,8 @@ Temporary Items
 .apdisk
 
 /Assets/Plugins/ExcelDatabase/Dist/
+/Assets/Plugins/ExcelDatabase/Dist.meta
 /Assets/Resources/ExcelDatabase/
+/Assets/Resources/ExcelDatabase.meta
 /Assets/Data/
+/Assets/Data.meta
