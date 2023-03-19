@@ -67,8 +67,7 @@ namespace ExcelDatabase.Editor.Manager {
             rootVisualElement.styleSheets.Add(styleSheet);
         }
 
-        private void RegisterButtons(
-) {
+        private void RegisterButtons() {
             rootVisualElement.Q<Button>("edit-button").RegisterCallback<ClickEvent>(HandleEdit);
             rootVisualElement.Q<Button>("parse-button").RegisterCallback<ClickEvent>(HandleParse);
             rootVisualElement.Q<Button>("remove-button").RegisterCallback<ClickEvent>(HandleRemove);
