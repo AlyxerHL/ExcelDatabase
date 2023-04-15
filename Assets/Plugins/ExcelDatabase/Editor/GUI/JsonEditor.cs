@@ -17,6 +17,7 @@ namespace ExcelDatabase.Editor.GUI
         {
             var window = GetWindow<JsonEditor>();
             window.titleContent = new GUIContent("Excel Database Json Editor");
+
             var json = AssetDatabase.LoadAssetAtPath<TextAsset>(jsonPath);
             window._json = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(json.text);
             window._jsonPath = jsonPath;
@@ -27,7 +28,6 @@ namespace ExcelDatabase.Editor.GUI
         {
             ApplyUI();
             RegisterButton();
-            ListIDs();
         }
 
         private void ApplyUI()
@@ -79,8 +79,8 @@ namespace ExcelDatabase.Editor.GUI
 
             void HandleSelectionChange(IEnumerable<object> selection)
             {
-                var columns = selection.First() as IEnumerable<KeyValuePair<string, string>>;
-                ListColumns(columns.Skip(1));
+                var columns = selection.Cast<Dictionary<string, string>>().First().Skip(1);
+                ListColumns(columns);
             }
         }
 
@@ -91,24 +91,28 @@ namespace ExcelDatabase.Editor.GUI
             columnList.itemsSource = columns.ToList();
             columnList.makeItem = MakeItem;
             columnList.bindItem = BindItem;
-            columnList.onSelectionChange += HandleSelectionChange;
 
             VisualElement MakeItem()
             {
-                var label = new Label();
-                label.AddToClassList("list-label");
-                return label;
+                var field = new TextField();
+                field.labelElement.AddToClassList("list-label");
+                return field;
             }
 
             void BindItem(VisualElement e, int i)
             {
-                if (e is Label label)
+                if (e is TextField field)
                 {
-                    label.text = $"{columns.ElementAt(i).Key}: {columns.ElementAt(i).Value}";
+                    var column = columns.ElementAt(i);
+                    field.label = column.Key;
+                    field.value = column.Value;
+
+                    // TODO implement callback
+                    field.RegisterValueChangedCallback(
+                        (e) => _json.First()[column.Key] = e.newValue
+                    );
                 }
             }
-
-            void HandleSelectionChange(IEnumerable<object> selection) { }
         }
     }
 }
