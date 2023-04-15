@@ -1,9 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/Plugins/ExcelDatabase/Editor/Manager/Manager.uss?fileID=7433441132597879392&amp;guid=e37081cf1c60a421e85db8b7960f1ba9&amp;type=3#Manager" />
-    <ui:GroupBox class="button-group">
-        <ui:Button text="Edit" display-tooltip-when-elided="true" name="edit-button" class="button" />
-        <ui:Button text="Parse" display-tooltip-when-elided="true" name="parse-button" class="button" />
-        <ui:Button text="Remove" display-tooltip-when-elided="true" name="remove-button" class="button" />
-    </ui:GroupBox>
-    <ui:ListView selection-type="Multiple" />
-</ui:UXML>

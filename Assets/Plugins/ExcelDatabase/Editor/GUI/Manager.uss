@@ -1,0 +1,10 @@
+.list-label {
+    padding: 9px 9px;
+}
+
+.button {
+    width: 33%;
+    margin: 0 0;
+    margin-left: 0;
+    margin-right: 0;
+}

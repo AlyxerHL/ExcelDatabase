@@ -12,7 +12,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
-namespace ExcelDatabase.Editor.Manager
+namespace ExcelDatabase.Editor.GUI
 {
     public class Manager : EditorWindow
     {
@@ -69,12 +69,12 @@ namespace ExcelDatabase.Editor.Manager
         private void ApplyUI()
         {
             var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                "Assets/Plugins/ExcelDatabase/Editor/Manager/Manager.uxml"
+                "Assets/Plugins/ExcelDatabase/Editor/GUI/Manager.uxml"
             );
             rootVisualElement.Add(visualTree.Instantiate());
 
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(
-                "Assets/Plugins/ExcelDatabase/Editor/Manager/Manager.uss"
+                "Assets/Plugins/ExcelDatabase/Editor/GUI/Manager.uss"
             );
             rootVisualElement.styleSheets.Add(styleSheet);
         }
@@ -87,7 +87,7 @@ namespace ExcelDatabase.Editor.Manager
 
             void HandleEdit(ClickEvent _)
             {
-                Debug.Log("Edit Button");
+                JsonEditor.Open(_selection.First().DistPaths[1]);
             }
 
             void HandleParse(ClickEvent _)
@@ -118,7 +118,7 @@ namespace ExcelDatabase.Editor.Manager
             VisualElement MakeItem()
             {
                 var label = new Label();
-                label.AddToClassList("table-label");
+                label.AddToClassList("list-label");
                 return label;
             }
 
