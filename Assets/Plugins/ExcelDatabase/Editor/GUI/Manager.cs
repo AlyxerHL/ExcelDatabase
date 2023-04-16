@@ -1,5 +1,3 @@
-#pragma warning disable IDE0051, RCS1213
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,7 +25,7 @@ namespace ExcelDatabase.Editor.GUI
                     ? JsonConvert.DeserializeObject<SortedSet<ParseResult>>(
                         File.ReadAllText(ResultPath)
                     )
-                    : new SortedSet<ParseResult>();
+                    : new();
                 return _resultSet;
             }
         }
@@ -35,31 +33,31 @@ namespace ExcelDatabase.Editor.GUI
         private static string ResultPath => $"{Config.DistPath}/ParseResult.json";
 
         [MenuItem("Tools/Excel Database/Show Manager")]
-        private static void ShowManager()
+        public static void ShowManager()
         {
             var window = GetWindow<Manager>();
-            window.titleContent = new GUIContent("Excel Database Manager");
+            window.titleContent = new("Excel Database | Manager");
         }
 
         [MenuItem("Tools/Excel Database/Parse Convert Tables")]
-        private static void ParseConvertTables()
+        public static void ParseConvertTables()
         {
             ParseTables(Selection.objects, TableType.Convert);
         }
 
         [MenuItem("Tools/Excel Database/Parse Enum Tables")]
-        private static void ParseEnumTables()
+        public static void ParseEnumTables()
         {
             ParseTables(Selection.objects, TableType.Enum);
         }
 
         [MenuItem("Tools/Excel Database/Parse Variable Tables")]
-        private static void ParseVariableTables()
+        public static void ParseVariableTables()
         {
             ParseTables(Selection.objects, TableType.Variable);
         }
 
-        private void CreateGUI()
+        public void CreateGUI()
         {
             ApplyUI();
             RegisterButtons();
@@ -113,7 +111,7 @@ namespace ExcelDatabase.Editor.GUI
             listView.itemsSource = ResultSet.ToList();
             listView.makeItem = MakeItem;
             listView.bindItem = BindItem;
-            listView.onSelectionChange += HandleSelectionChange;
+            listView.onSelectionChange += OnSelectionChange;
 
             VisualElement MakeItem()
             {
@@ -130,7 +128,7 @@ namespace ExcelDatabase.Editor.GUI
                 }
             }
 
-            void HandleSelectionChange(IEnumerable<object> selection)
+            void OnSelectionChange(IEnumerable<object> selection)
             {
                 _selection = selection.Cast<ParseResult>();
             }

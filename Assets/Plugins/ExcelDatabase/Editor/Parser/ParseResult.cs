@@ -28,7 +28,7 @@ namespace ExcelDatabase.Editor.Parser
         public int CompareTo(ParseResult other)
         {
             var typeComparison = Type.CompareTo(other.Type);
-            return typeComparison != 0 ? typeComparison : string.CompareOrdinal(Name, other.Name);
+            return typeComparison != 0 ? typeComparison : string.Compare(Name, other.Name);
         }
 
         int IComparable.CompareTo(object obj)

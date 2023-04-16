@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace ExcelDatabase.Editor.GUI
         public static void Open(string jsonPath)
         {
             var window = GetWindow<JsonEditor>();
-            window.titleContent = new GUIContent("Excel Database Json Editor");
+            window.titleContent = new("Excel Database | Json Editor");
 
             var json = AssetDatabase.LoadAssetAtPath<TextAsset>(jsonPath);
             window._json = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(json.text);
@@ -51,6 +52,7 @@ namespace ExcelDatabase.Editor.GUI
             {
                 var json = JsonConvert.SerializeObject(_json, Formatting.Indented);
                 File.WriteAllText(_jsonPath, json);
+                AssetDatabase.Refresh();
             }
         }
 
@@ -60,7 +62,7 @@ namespace ExcelDatabase.Editor.GUI
             idList.itemsSource = _json;
             idList.makeItem = MakeItem;
             idList.bindItem = BindItem;
-            idList.onSelectionChange += HandleSelectionChange;
+            idList.onSelectionChange += OnSelectionChange;
 
             VisualElement MakeItem()
             {
@@ -77,17 +79,16 @@ namespace ExcelDatabase.Editor.GUI
                 }
             }
 
-            void HandleSelectionChange(IEnumerable<object> selection)
+            void OnSelectionChange(IEnumerable<object> selection)
             {
-                var columns = selection.Cast<Dictionary<string, string>>().First().Skip(1);
+                var columns = selection.First() as IDictionary<string, string>;
                 ListColumns(columns);
             }
         }
 
-        private void ListColumns(IEnumerable<KeyValuePair<string, string>> columns)
+        private void ListColumns(IDictionary<string, string> columns)
         {
             var columnList = rootVisualElement.Q<ListView>("column-list");
-            columnList.Clear();
             columnList.itemsSource = columns.ToList();
             columnList.makeItem = MakeItem;
             columnList.bindItem = BindItem;
@@ -96,7 +97,16 @@ namespace ExcelDatabase.Editor.GUI
             {
                 var field = new TextField();
                 field.AddToClassList("list-field");
+                field.RegisterValueChangedCallback(OnValueChanged);
                 return field;
+
+                void OnValueChanged(ChangeEvent<string> e)
+                {
+                    if (e.target is TextField field)
+                    {
+                        columns[field.label] = e.newValue;
+                    }
+                }
             }
 
             void BindItem(VisualElement element, int i)
@@ -107,9 +117,10 @@ namespace ExcelDatabase.Editor.GUI
                     field.label = column.Key;
                     field.value = column.Value;
 
-                    field.RegisterValueChangedCallback(
-                        (e) => _json.First()[column.Key] = e.newValue
-                    );
+                    if (i == 0)
+                    {
+                        field.SetEnabled(false);
+                    }
                 }
             }
         }

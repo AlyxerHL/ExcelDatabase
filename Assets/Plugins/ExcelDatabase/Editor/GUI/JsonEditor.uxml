@@ -4,7 +4,7 @@
         <ui:Button text="Save" display-tooltip-when-elided="true" name="save-button" />
     </ui:GroupBox>
     <ui:VisualElement style="flex-direction: row;">
-        <ui:ListView name="id-list" style="width: 50%;" />
+        <ui:ListView name="id-list" show-bound-collection-size="false" style="width: 50%;" />
         <ui:ListView name="column-list" selection-type="None" style="width: 100%;" />
     </ui:VisualElement>
 </ui:UXML>
