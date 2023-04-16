@@ -8,8 +8,9 @@
 .list-field {
     align-items: center;
     height: 100%;
+    margin: 0;
     padding-left: 8px;
-    padding-right: 7px;
+    padding-right: 9px;
 }
 
 .button {
