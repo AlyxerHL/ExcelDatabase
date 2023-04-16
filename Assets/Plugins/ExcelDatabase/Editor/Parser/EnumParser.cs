@@ -7,8 +7,10 @@ using NPOI.XSSF.UserModel;
 using UnityEditor;
 using UnityEngine;
 
-namespace ExcelDatabase.Editor.Parser {
-    public class EnumParser : IParser {
+namespace ExcelDatabase.Editor.Parser
+{
+    public class EnumParser : IParser
+    {
         private const int GroupCol = 0;
         private const int EnumCol = 1;
 
@@ -26,7 +28,8 @@ namespace ExcelDatabase.Editor.Parser {
         private readonly string _tableName;
         private readonly string _excelPath;
 
-        public EnumParser(Object file) {
+        public EnumParser(Object file)
+        {
             var path = AssetDatabase.GetAssetPath(file);
             using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
             _sheet = new XSSFWorkbook(stream).GetSheetAt(0);
@@ -34,75 +37,99 @@ namespace ExcelDatabase.Editor.Parser {
             _excelPath = AssetDatabase.GetAssetPath(file);
         }
 
-        public ParseResult Parse() {
+        public ParseResult Parse()
+        {
             var rows = ValidateRows();
             var script = BuildScript(rows);
             var distPath = ParseUtility.WriteScript(TableType.Enum, _tableName, script);
             return new ParseResult(TableType.Enum, _tableName, _excelPath, new[] { distPath });
         }
 
-        private IEnumerable<Row> ValidateRows() {
+        private IEnumerable<Row> ValidateRows()
+        {
             var firstRow = _sheet.GetRow(0);
-            if (firstRow?.GetCellValue(GroupCol) != "EnumGroup" ||
-                firstRow.GetCellValue(EnumCol) != "Enum") {
+            if (
+                firstRow?.GetCellValue(GroupCol) != "EnumGroup"
+                || firstRow.GetCellValue(EnumCol) != "Enum"
+            )
+            {
                 throw new ParserException(_tableName, "Invalid column name");
             }
 
             var diffChecker = new HashSet<string>();
-            for (var i = 1; i <= _sheet.LastRowNum; i++) {
+            for (var i = 1; i <= _sheet.LastRowNum; i++)
+            {
                 var poiRow = _sheet.GetRow(i);
-                if (poiRow == null) {
+                if (poiRow == null)
+                {
                     break;
                 }
 
-                var row = new Row
-                (
-                    poiRow.GetCellValue(GroupCol),
-                    poiRow.GetCellValue(EnumCol)
-                );
+                var row = new Row(poiRow.GetCellValue(GroupCol), poiRow.GetCellValue(EnumCol));
 
-                if (row.Group?.Length == 0) {
+                if (row.Group?.Length == 0)
+                {
                     break;
                 }
 
-                if (char.IsDigit(row.Group, 0)) {
-                    throw new ParserException(_tableName, $"Enum group '{row.Group}' starts with a number");
+                if (char.IsDigit(row.Group, 0))
+                {
+                    throw new ParserException(
+                        _tableName,
+                        $"Enum group '{row.Group}' starts with a number"
+                    );
                 }
 
-                if (row.Enum?.Length == 0) {
-                    throw new ParserException(_tableName, $"Enum value in group '{row.Group}' is empty");
+                if (row.Enum?.Length == 0)
+                {
+                    throw new ParserException(
+                        _tableName,
+                        $"Enum value in group '{row.Group}' is empty"
+                    );
                 }
 
-                if (char.IsDigit(row.Enum, 0)) {
+                if (char.IsDigit(row.Enum, 0))
+                {
                     throw new ParserException(
                         _tableName,
                         $"Enum value '{row.Enum}' in group '{row.Group}' starts with a number"
                     );
                 }
 
-                if (!diffChecker.Add(row.Group + row.Enum)) {
-                    throw new ParserException(_tableName, $"Duplicate enum value '{row.Enum}' in group '{row.Group}'");
+                if (!diffChecker.Add(row.Group + row.Enum))
+                {
+                    throw new ParserException(
+                        _tableName,
+                        $"Duplicate enum value '{row.Enum}' in group '{row.Group}'"
+                    );
                 }
 
                 yield return row;
             }
         }
 
-        private string BuildScript(IEnumerable<Row> rows) {
+        private string BuildScript(IEnumerable<Row> rows)
+        {
             var tableTemplate = File.ReadAllText(TablePath);
             var rowTemplate = File.ReadAllText(RowPath);
             var builder = new StringBuilder(tableTemplate).Replace(TableVariable, _tableName);
             string prevGroupValue = null;
 
-            foreach (var row in rows) {
-                if (prevGroupValue != row.Group) {
+            foreach (var row in rows)
+            {
+                if (prevGroupValue != row.Group)
+                {
                     prevGroupValue = row.Group;
                     builder.Replace(RowTemplate, string.Empty);
                     var groupTemplate = File.ReadAllText(GroupPath);
-                    builder.Replace(GroupTemplate, groupTemplate + GroupTemplate).Replace(GroupVariable, row.Group);
+                    builder
+                        .Replace(GroupTemplate, groupTemplate + GroupTemplate)
+                        .Replace(GroupVariable, row.Group);
                 }
 
-                builder.Replace(RowTemplate, rowTemplate + RowTemplate).Replace(RowVariable, row.Enum);
+                builder
+                    .Replace(RowTemplate, rowTemplate + RowTemplate)
+                    .Replace(RowVariable, row.Enum);
             }
 
             builder.Replace(RowTemplate, string.Empty);
@@ -110,11 +137,13 @@ namespace ExcelDatabase.Editor.Parser {
             return builder.ToString();
         }
 
-        private readonly struct Row {
+        private readonly struct Row
+        {
             public readonly string Group;
             public readonly string Enum;
 
-            public Row(string group, string @enum) {
+            public Row(string group, string @enum)
+            {
                 Group = ParseUtility.Format(group);
                 Enum = ParseUtility.Format(@enum);
             }

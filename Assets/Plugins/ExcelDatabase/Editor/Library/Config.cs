@@ -1,13 +1,18 @@
 using System.IO;
 using UnityEditor;
 
-namespace ExcelDatabase.Editor.Library {
-    public static class Config {
+namespace ExcelDatabase.Editor.Library
+{
+    public static class Config
+    {
         private static string _root;
 
-        private static string Root {
-            get {
-                if (_root != null) {
+        private static string Root
+        {
+            get
+            {
+                if (_root != null)
+                {
                     return _root;
                 }
 
@@ -20,5 +25,6 @@ namespace ExcelDatabase.Editor.Library {
 
         public static readonly string DistPath = $"{Root}/Dist";
         public static readonly string TemplatePath = $"{Root}/Editor/Templates";
+        public const string ExcludePrefix = "#";
     }
 }
