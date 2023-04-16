@@ -80,8 +80,9 @@ namespace ExcelDatabase.Editor.GUI
 
         private void ListColumns(IDictionary<string, string> columns)
         {
+            var columnsWithoutID = columns.Skip(1);
             var columnList = rootVisualElement.Q<ListView>("column-list");
-            columnList.itemsSource = columns.ToList();
+            columnList.itemsSource = columnsWithoutID.ToList();
             columnList.makeItem = MakeItem;
             columnList.bindItem = BindItem;
 
@@ -105,14 +106,9 @@ namespace ExcelDatabase.Editor.GUI
             {
                 if (element is TextField field)
                 {
-                    var column = columns.ElementAt(i);
+                    var column = columnsWithoutID.ElementAt(i);
                     field.label = column.Key;
                     field.value = column.Value;
-
-                    if (i == 0)
-                    {
-                        field.SetEnabled(false);
-                    }
                 }
             }
         }
