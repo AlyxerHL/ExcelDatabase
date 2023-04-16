@@ -11,27 +11,18 @@ namespace ExcelDatabase.Editor.GUI
 {
     public class JsonEditor : EditorWindow
     {
-        private string _jsonPath;
-        private Dictionary<string, string>[] _json;
-
         public static void Open(string jsonPath)
         {
             var window = GetWindow<JsonEditor>();
-            window.titleContent = new("Excel Database | Json Editor");
-
             var json = AssetDatabase.LoadAssetAtPath<TextAsset>(jsonPath);
-            window._json = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(json.text);
-            window._jsonPath = jsonPath;
-            window.ListIDs();
+            var table = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(json.text);
+
+            window.titleContent = new("Excel Database | Json Editor");
+            window.RegisterButton(table, jsonPath);
+            window.ListIDs(table);
         }
 
         public void CreateGUI()
-        {
-            ApplyUI();
-            RegisterButton();
-        }
-
-        private void ApplyUI()
         {
             var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
                 "Assets/Plugins/ExcelDatabase/Editor/GUI/JsonEditor.uxml"
@@ -44,22 +35,23 @@ namespace ExcelDatabase.Editor.GUI
             rootVisualElement.styleSheets.Add(styleSheet);
         }
 
-        private void RegisterButton()
+        private void RegisterButton(IDictionary<string, string>[] table, string jsonPath)
         {
-            rootVisualElement.Q<Button>("save-button").RegisterCallback<ClickEvent>(HandleSave);
+            var button = rootVisualElement.Q<Button>("save-button");
+            button.RegisterCallback<ClickEvent>(HandleSave);
 
             void HandleSave(ClickEvent _)
             {
-                var json = JsonConvert.SerializeObject(_json, Formatting.Indented);
-                File.WriteAllText(_jsonPath, json);
+                var json = JsonConvert.SerializeObject(table, Formatting.Indented);
+                File.WriteAllText(jsonPath, json);
                 AssetDatabase.Refresh();
             }
         }
 
-        private void ListIDs()
+        private void ListIDs(IDictionary<string, string>[] table)
         {
             var idList = rootVisualElement.Q<ListView>("id-list");
-            idList.itemsSource = _json;
+            idList.itemsSource = table;
             idList.makeItem = MakeItem;
             idList.bindItem = BindItem;
             idList.onSelectionChange += OnSelectionChange;
@@ -75,7 +67,7 @@ namespace ExcelDatabase.Editor.GUI
             {
                 if (element is Label label)
                 {
-                    label.text = _json[i]["ID"];
+                    label.text = table[i]["ID"];
                 }
             }
 
