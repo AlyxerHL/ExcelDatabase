@@ -44,6 +44,7 @@ namespace ExcelDatabase.Editor.GUI
                 var json = JsonConvert.SerializeObject(table, Formatting.Indented);
                 File.WriteAllText(jsonPath, json);
                 AssetDatabase.Refresh();
+                Debug.Log("Excel Database: Saving has been completed");
             }
         }
 

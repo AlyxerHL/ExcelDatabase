@@ -79,9 +79,17 @@ namespace ExcelDatabase.Editor.GUI
 
         private void RegisterButtons()
         {
-            rootVisualElement.Q<Button>("edit-button").RegisterCallback<ClickEvent>(HandleEdit);
-            rootVisualElement.Q<Button>("parse-button").RegisterCallback<ClickEvent>(HandleParse);
-            rootVisualElement.Q<Button>("remove-button").RegisterCallback<ClickEvent>(HandleRemove);
+            var editButton = rootVisualElement.Q<Button>("edit-button");
+            editButton.RegisterCallback<ClickEvent>(HandleEdit);
+            editButton.SetEnabled(false);
+
+            var parseButton = rootVisualElement.Q<Button>("parse-button");
+            parseButton.RegisterCallback<ClickEvent>(HandleParse);
+            parseButton.SetEnabled(false);
+
+            var removeButton = rootVisualElement.Q<Button>("remove-button");
+            removeButton.RegisterCallback<ClickEvent>(HandleRemove);
+            removeButton.SetEnabled(false);
 
             void HandleEdit(ClickEvent _)
             {
@@ -133,8 +141,13 @@ namespace ExcelDatabase.Editor.GUI
                 _selection = selection.Cast<ParseResult>();
                 var editButton = rootVisualElement.Q<Button>("edit-button");
                 editButton.SetEnabled(
-                    _selection.Count() == 1 && _selection.First().Type == TableType.Convert
+                    _selection?.Count() == 1 && _selection?.First().Type == TableType.Convert
                 );
+
+                var parseButton = rootVisualElement.Q<Button>("parse-button");
+                parseButton.SetEnabled(_selection?.Count() > 0);
+                var removeButton = rootVisualElement.Q<Button>("remove-button");
+                removeButton.SetEnabled(_selection?.Count() > 0);
             }
         }
 
@@ -165,6 +178,7 @@ namespace ExcelDatabase.Editor.GUI
             }
 
             AssetDatabase.Refresh();
+            Debug.Log("Excel Database: Parsing has been completed");
 
             static bool IsExcelFile(Object file)
             {
@@ -186,6 +200,7 @@ namespace ExcelDatabase.Editor.GUI
             }
 
             SyncResultSet();
+            Debug.Log("Excel Database: Removing has been completed");
         }
 
         private static void SyncResultSet()
