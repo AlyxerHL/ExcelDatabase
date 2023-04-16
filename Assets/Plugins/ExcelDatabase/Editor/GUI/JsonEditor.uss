@@ -1,7 +1,0 @@
-.list-label {
-    padding: 8px;
-}
-
-.list {
-    width: 50%;
-}

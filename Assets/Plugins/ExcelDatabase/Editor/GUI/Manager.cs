@@ -74,7 +74,7 @@ namespace ExcelDatabase.Editor.GUI
             rootVisualElement.Add(visualTree.Instantiate());
 
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(
-                "Assets/Plugins/ExcelDatabase/Editor/GUI/Manager.uss"
+                "Assets/Plugins/ExcelDatabase/Editor/GUI/Style.uss"
             );
             rootVisualElement.styleSheets.Add(styleSheet);
         }
@@ -122,9 +122,9 @@ namespace ExcelDatabase.Editor.GUI
                 return label;
             }
 
-            void BindItem(VisualElement e, int i)
+            void BindItem(VisualElement element, int i)
             {
-                if (e is Label label)
+                if (element is Label label)
                 {
                     label.text = ResultSet.ElementAt(i).ToString();
                 }

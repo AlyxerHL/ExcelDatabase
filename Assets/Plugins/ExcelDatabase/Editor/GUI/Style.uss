@@ -1,0 +1,18 @@
+.list-label {
+    height: 100%;
+    padding-left: 9px;
+    padding-right: 9px;
+    -unity-text-align: middle-left;
+}
+
+.list-field {
+    align-items: center;
+    height: 100%;
+    padding-left: 8px;
+    padding-right: 7px;
+}
+
+.button {
+    flex-shrink: 1;
+    width: 100%;
+}

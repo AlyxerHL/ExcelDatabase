@@ -38,7 +38,7 @@ namespace ExcelDatabase.Editor.GUI
             rootVisualElement.Add(visualTree.Instantiate());
 
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(
-                "Assets/Plugins/ExcelDatabase/Editor/GUI/JsonEditor.uss"
+                "Assets/Plugins/ExcelDatabase/Editor/GUI/Style.uss"
             );
             rootVisualElement.styleSheets.Add(styleSheet);
         }
@@ -69,9 +69,9 @@ namespace ExcelDatabase.Editor.GUI
                 return label;
             }
 
-            void BindItem(VisualElement e, int i)
+            void BindItem(VisualElement element, int i)
             {
-                if (e is Label label)
+                if (element is Label label)
                 {
                     label.text = _json[i]["ID"];
                 }
@@ -95,19 +95,18 @@ namespace ExcelDatabase.Editor.GUI
             VisualElement MakeItem()
             {
                 var field = new TextField();
-                field.labelElement.AddToClassList("list-label");
+                field.AddToClassList("list-field");
                 return field;
             }
 
-            void BindItem(VisualElement e, int i)
+            void BindItem(VisualElement element, int i)
             {
-                if (e is TextField field)
+                if (element is TextField field)
                 {
                     var column = columns.ElementAt(i);
                     field.label = column.Key;
                     field.value = column.Value;
 
-                    // TODO implement callback
                     field.RegisterValueChangedCallback(
                         (e) => _json.First()[column.Key] = e.newValue
                     );
