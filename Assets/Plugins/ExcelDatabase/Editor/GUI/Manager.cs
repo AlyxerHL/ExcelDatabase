@@ -131,6 +131,10 @@ namespace ExcelDatabase.Editor.GUI
             void OnSelectionChange(IEnumerable<object> selection)
             {
                 _selection = selection.Cast<ParseResult>();
+                var editButton = rootVisualElement.Q<Button>("edit-button");
+                editButton.SetEnabled(
+                    _selection.Count() == 1 && _selection.First().Type == TableType.Convert
+                );
             }
         }
 
