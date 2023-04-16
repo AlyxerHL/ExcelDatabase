@@ -18,9 +18,7 @@ namespace ExcelDatabase.Editor.Parser
         private const int TypeRow = 1;
         private const int IDCol = 0;
 
-        private const string ExcludePrefix = "#";
         private const string ArraySeparator = "\n";
-
         private const string ColTemplate = "#COL#";
         private const string TableVariable = "$TABLE$";
         private const string TypeVariable = "$TYPE$";
@@ -78,7 +76,7 @@ namespace ExcelDatabase.Editor.Parser
             for (var i = 1; i <= nameRow.LastCellNum; i++)
             {
                 var col = new Col(i, nameRow.GetCellValue(i), typeRow.GetCellValue(i));
-                if (col.Name.StartsWith(ExcludePrefix))
+                if (col.Name.StartsWith(Config.ExcludePrefix))
                 {
                     continue;
                 }
@@ -151,7 +149,7 @@ namespace ExcelDatabase.Editor.Parser
                 foreach (var col in cols)
                 {
                     var cell = poiRow.GetCellValue(col.Index);
-                    if (cell.StartsWith(ExcludePrefix))
+                    if (cell.StartsWith(Config.ExcludePrefix))
                     {
                         continue;
                     }
