@@ -51,6 +51,8 @@ namespace ExcelDatabase.Editor.GUI
         private void ListIDs(IDictionary<string, string>[] table)
         {
             var idList = rootVisualElement.Q<ListView>("id-list");
+            idList.bindItem = null;
+
             idList.itemsSource = table;
             idList.makeItem = MakeItem;
             idList.bindItem = BindItem;
@@ -82,6 +84,8 @@ namespace ExcelDatabase.Editor.GUI
         {
             var columnsWithoutID = columns.Skip(1);
             var columnList = rootVisualElement.Q<ListView>("column-list");
+            columnList.bindItem = null;
+
             columnList.itemsSource = columnsWithoutID.ToList();
             columnList.makeItem = MakeItem;
             columnList.bindItem = BindItem;

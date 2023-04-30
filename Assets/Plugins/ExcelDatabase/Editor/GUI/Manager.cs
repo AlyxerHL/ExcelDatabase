@@ -116,6 +116,8 @@ namespace ExcelDatabase.Editor.GUI
         private void ListTables()
         {
             var listView = rootVisualElement.Q<ListView>();
+            listView.bindItem = null;
+
             listView.itemsSource = ResultSet.ToList();
             listView.makeItem = MakeItem;
             listView.bindItem = BindItem;
