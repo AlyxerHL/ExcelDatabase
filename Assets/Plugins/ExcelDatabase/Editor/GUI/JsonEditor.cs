@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -14,7 +15,7 @@ namespace ExcelDatabase.Editor.GUI
         {
             var window = GetWindow<JsonEditor>();
             var json = AssetDatabase.LoadAssetAtPath<TextAsset>(jsonPath);
-            var table = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(json.text);
+            var table = JsonConvert.DeserializeObject<Dictionary<string, object>[]>(json.text);
 
             window.titleContent = new("Excel Database | Json Editor");
             window.RegisterButton(table, jsonPath);
@@ -34,7 +35,7 @@ namespace ExcelDatabase.Editor.GUI
             rootVisualElement.styleSheets.Add(styleSheet);
         }
 
-        private void RegisterButton(IDictionary<string, string>[] table, string jsonPath)
+        private void RegisterButton(IDictionary<string, object>[] table, string jsonPath)
         {
             var button = rootVisualElement.Q<Button>("save-button");
             button.RegisterCallback<ClickEvent>(HandleSave);
@@ -48,7 +49,7 @@ namespace ExcelDatabase.Editor.GUI
             }
         }
 
-        private void ListIDs(IDictionary<string, string>[] table)
+        private void ListIDs(IDictionary<string, object>[] table)
         {
             var idList = rootVisualElement.Q<ListView>("id-list");
             idList.bindItem = null;
@@ -69,18 +70,18 @@ namespace ExcelDatabase.Editor.GUI
             {
                 if (element is Label label)
                 {
-                    label.text = table[i]["ID"];
+                    label.text = table[i]["ID"] as string;
                 }
             }
 
             void OnSelectionChange(IEnumerable<object> selection)
             {
-                var columns = selection.First() as IDictionary<string, string>;
+                var columns = selection.First() as IDictionary<string, object>;
                 ListColumns(columns);
             }
         }
 
-        private void ListColumns(IDictionary<string, string> columns)
+        private void ListColumns(IDictionary<string, object> columns)
         {
             var columnsWithoutID = columns.Skip(1);
             var columnList = rootVisualElement.Q<ListView>("column-list");
@@ -101,7 +102,9 @@ namespace ExcelDatabase.Editor.GUI
                 {
                     if (e.target is TextField field)
                     {
-                        columns[field.label] = e.newValue;
+                        columns[field.label] = field.multiline
+                            ? e.newValue.Split("\n")
+                            : e.newValue;
                     }
                 }
             }
@@ -112,7 +115,17 @@ namespace ExcelDatabase.Editor.GUI
                 {
                     var column = columnsWithoutID.ElementAt(i);
                     field.label = column.Key;
-                    field.value = column.Value;
+
+                    if (column.Value is string value)
+                    {
+                        field.multiline = false;
+                        field.value = value;
+                    }
+                    else if (column.Value is JArray arrayValue)
+                    {
+                        field.multiline = true;
+                        field.value = string.Join("\n", arrayValue);
+                    }
                 }
             }
         }
