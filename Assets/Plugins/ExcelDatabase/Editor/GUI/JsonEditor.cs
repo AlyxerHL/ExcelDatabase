@@ -11,8 +11,9 @@ namespace ExcelDatabase.Editor.GUI
 {
     public class JsonEditor : EditorWindow
     {
-        private Dictionary<string, object>[] table;
         private string jsonPath;
+        private Dictionary<string, object>[] table;
+        private Dictionary<string, object> columns;
 
         public static void Open(string jsonPath)
         {
@@ -22,6 +23,24 @@ namespace ExcelDatabase.Editor.GUI
             window.jsonPath = jsonPath;
             window.titleContent = new("Excel Database | Json Editor");
             window.ListIDs();
+        }
+
+        public static void Refresh()
+        {
+            if (!HasOpenInstances<JsonEditor>())
+            {
+                return;
+            }
+
+            var window = GetWindow<JsonEditor>();
+            var json = AssetDatabase.LoadAssetAtPath<TextAsset>(window.jsonPath);
+            window.table = JsonConvert.DeserializeObject<Dictionary<string, object>[]>(json.text);
+            window.columns = window.table.First(
+                column => column["ID"] as string == window.columns["ID"] as string
+            );
+
+            window.ListIDs();
+            window.ListColumns();
         }
 
         public void CreateGUI()
@@ -76,12 +95,12 @@ namespace ExcelDatabase.Editor.GUI
 
             void OnSelectionChange(IEnumerable<object> selection)
             {
-                var columns = selection.First() as IDictionary<string, object>;
-                ListColumns(columns);
+                columns = selection.First() as Dictionary<string, object>;
+                ListColumns();
             }
         }
 
-        private void ListColumns(IDictionary<string, object> columns)
+        private void ListColumns()
         {
             var columnsWithoutID = columns.Skip(1);
             var columnList = rootVisualElement.Q<ListView>("column-list");

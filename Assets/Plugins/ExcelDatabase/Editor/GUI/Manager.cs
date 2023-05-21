@@ -180,6 +180,7 @@ namespace ExcelDatabase.Editor.GUI
             }
 
             AssetDatabase.Refresh();
+            JsonEditor.Refresh();
             Debug.Log("Excel Database: Parsing has been completed");
 
             static bool IsExcelFile(Object file)
