@@ -93,7 +93,7 @@ namespace ExcelDatabase.Editor.GUI
 
             VisualElement MakeItem()
             {
-                var field = new TextField();
+                var field = new TextField { multiline = true };
                 field.AddToClassList("list-field");
                 field.RegisterValueChangedCallback(OnValueChanged);
                 field.RegisterCallback<FocusOutEvent>(OnFocusOut);
@@ -103,9 +103,10 @@ namespace ExcelDatabase.Editor.GUI
                 {
                     if (e.target is TextField field)
                     {
-                        columns[field.label] = field.multiline
-                            ? e.newValue.Split("\n")
-                            : e.newValue;
+                        columns[field.label] =
+                            columns[field.label] is JArray
+                                ? new JArray(e.newValue.Split('\n'))
+                                : e.newValue;
                     }
                 }
 
@@ -123,17 +124,9 @@ namespace ExcelDatabase.Editor.GUI
                 {
                     var column = columnsWithoutID.ElementAt(i);
                     field.label = column.Key;
-
-                    if (column.Value is string value)
-                    {
-                        field.multiline = false;
-                        field.value = value;
-                    }
-                    else if (column.Value is JArray arrayValue)
-                    {
-                        field.multiline = true;
-                        field.value = string.Join("\n", arrayValue);
-                    }
+                    field.value = column.Value is JArray array
+                        ? string.Join('\n', array)
+                        : column.Value as string;
                 }
             }
         }
