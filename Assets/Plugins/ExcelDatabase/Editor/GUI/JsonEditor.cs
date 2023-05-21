@@ -11,15 +11,17 @@ namespace ExcelDatabase.Editor.GUI
 {
     public class JsonEditor : EditorWindow
     {
+        private Dictionary<string, object>[] table;
+        private string jsonPath;
+
         public static void Open(string jsonPath)
         {
             var window = GetWindow<JsonEditor>();
             var json = AssetDatabase.LoadAssetAtPath<TextAsset>(jsonPath);
-            var table = JsonConvert.DeserializeObject<Dictionary<string, object>[]>(json.text);
-
+            window.table = JsonConvert.DeserializeObject<Dictionary<string, object>[]>(json.text);
+            window.jsonPath = jsonPath;
             window.titleContent = new("Excel Database | Json Editor");
-            window.RegisterButton(table, jsonPath);
-            window.ListIDs(table);
+            window.ListIDs();
         }
 
         public void CreateGUI()
@@ -35,26 +37,19 @@ namespace ExcelDatabase.Editor.GUI
             rootVisualElement.styleSheets.Add(styleSheet);
 
             var splitView = new TwoPaneSplitView(0, 300f, TwoPaneSplitViewOrientation.Horizontal);
-            splitView.Add(new ListView { name = "id-list" });
-            splitView.Add(new ListView { name = "column-list" });
+            var idList = new ListView { name = "id-list" };
+            var columnList = new ListView
+            {
+                name = "column-list",
+                selectionType = SelectionType.None
+            };
+
+            splitView.Add(idList);
+            splitView.Add(columnList);
             rootVisualElement.Add(splitView);
         }
 
-        private void RegisterButton(IDictionary<string, object>[] table, string jsonPath)
-        {
-            var button = rootVisualElement.Q<Button>("save-button");
-            button.RegisterCallback<ClickEvent>(HandleSave);
-
-            void HandleSave(ClickEvent _)
-            {
-                var json = JsonConvert.SerializeObject(table, Formatting.Indented);
-                File.WriteAllText(jsonPath, json);
-                AssetDatabase.Refresh();
-                Debug.Log("Excel Database: Saving has been completed");
-            }
-        }
-
-        private void ListIDs(IDictionary<string, object>[] table)
+        private void ListIDs()
         {
             var idList = rootVisualElement.Q<ListView>("id-list");
             idList.bindItem = null;
@@ -101,6 +96,7 @@ namespace ExcelDatabase.Editor.GUI
                 var field = new TextField();
                 field.AddToClassList("list-field");
                 field.RegisterValueChangedCallback(OnValueChanged);
+                field.RegisterCallback<FocusOutEvent>(OnFocusOut);
                 return field;
 
                 void OnValueChanged(ChangeEvent<string> e)
@@ -111,6 +107,13 @@ namespace ExcelDatabase.Editor.GUI
                             ? e.newValue.Split("\n")
                             : e.newValue;
                     }
+                }
+
+                void OnFocusOut(FocusOutEvent _)
+                {
+                    var json = JsonConvert.SerializeObject(table, Formatting.Indented);
+                    File.WriteAllText(jsonPath, json);
+                    AssetDatabase.Refresh();
                 }
             }
 

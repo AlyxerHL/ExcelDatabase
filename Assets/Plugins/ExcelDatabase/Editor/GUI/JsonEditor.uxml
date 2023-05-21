@@ -1,6 +1,3 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Plugins/ExcelDatabase/Editor/GUI/Style.uss?fileID=7433441132597879392&amp;guid=aca61a8e049ed4506823fcf386c2daad&amp;type=3#Style" />
-    <ui:GroupBox style="padding-right: 3px;">
-        <ui:Button text="Save" display-tooltip-when-elided="true" name="save-button" />
-    </ui:GroupBox>
 </ui:UXML>
