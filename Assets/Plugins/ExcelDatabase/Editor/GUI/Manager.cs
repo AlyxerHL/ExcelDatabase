@@ -116,6 +116,7 @@ namespace ExcelDatabase.Editor.GUI
         private void ListTables()
         {
             var listView = rootVisualElement.Q<ListView>();
+            // 스크롤 시 KeyNotFoundException 방지
             listView.bindItem = null;
 
             listView.itemsSource = ResultSet.ToList();

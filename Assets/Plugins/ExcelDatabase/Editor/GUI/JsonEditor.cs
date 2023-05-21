@@ -71,6 +71,7 @@ namespace ExcelDatabase.Editor.GUI
         private void ListIDs()
         {
             var idList = rootVisualElement.Q<ListView>("id-list");
+            // 스크롤 시 KeyNotFoundException 방지
             idList.bindItem = null;
 
             idList.itemsSource = table;
@@ -104,6 +105,7 @@ namespace ExcelDatabase.Editor.GUI
         {
             var columnsWithoutID = columns.Skip(1);
             var columnList = rootVisualElement.Q<ListView>("column-list");
+            // 스크롤 시 KeyNotFoundException 방지
             columnList.bindItem = null;
 
             columnList.itemsSource = columnsWithoutID.ToList();
