@@ -33,6 +33,11 @@ namespace ExcelDatabase.Editor.GUI
                 "Assets/Plugins/ExcelDatabase/Editor/GUI/Style.uss"
             );
             rootVisualElement.styleSheets.Add(styleSheet);
+
+            var splitView = new TwoPaneSplitView(0, 300f, TwoPaneSplitViewOrientation.Horizontal);
+            splitView.Add(new ListView { name = "id-list" });
+            splitView.Add(new ListView { name = "column-list" });
+            rootVisualElement.Add(splitView);
         }
 
         private void RegisterButton(IDictionary<string, object>[] table, string jsonPath)
