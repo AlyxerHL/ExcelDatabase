@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -10,15 +11,36 @@ namespace ExcelDatabase.Editor.GUI
 {
     public class JsonEditor : EditorWindow
     {
+        private string jsonPath;
+        private Dictionary<string, object>[] table;
+        private Dictionary<string, object> columns;
+
         public static void Open(string jsonPath)
         {
             var window = GetWindow<JsonEditor>();
             var json = AssetDatabase.LoadAssetAtPath<TextAsset>(jsonPath);
-            var table = JsonConvert.DeserializeObject<Dictionary<string, string>[]>(json.text);
-
+            window.table = JsonConvert.DeserializeObject<Dictionary<string, object>[]>(json.text);
+            window.jsonPath = jsonPath;
             window.titleContent = new("Excel Database | Json Editor");
-            window.RegisterButton(table, jsonPath);
-            window.ListIDs(table);
+            window.ListIDs();
+        }
+
+        public static void Refresh()
+        {
+            if (!HasOpenInstances<JsonEditor>())
+            {
+                return;
+            }
+
+            var window = GetWindow<JsonEditor>();
+            var json = AssetDatabase.LoadAssetAtPath<TextAsset>(window.jsonPath);
+            window.table = JsonConvert.DeserializeObject<Dictionary<string, object>[]>(json.text);
+            window.columns = window.table.First(
+                column => column["ID"] as string == window.columns["ID"] as string
+            );
+
+            window.ListIDs();
+            window.ListColumns();
         }
 
         public void CreateGUI()
@@ -32,25 +54,24 @@ namespace ExcelDatabase.Editor.GUI
                 "Assets/Plugins/ExcelDatabase/Editor/GUI/Style.uss"
             );
             rootVisualElement.styleSheets.Add(styleSheet);
-        }
 
-        private void RegisterButton(IDictionary<string, string>[] table, string jsonPath)
-        {
-            var button = rootVisualElement.Q<Button>("save-button");
-            button.RegisterCallback<ClickEvent>(HandleSave);
-
-            void HandleSave(ClickEvent _)
+            var splitView = new TwoPaneSplitView(0, 300f, TwoPaneSplitViewOrientation.Horizontal);
+            var idList = new ListView { name = "id-list" };
+            var columnList = new ListView
             {
-                var json = JsonConvert.SerializeObject(table, Formatting.Indented);
-                File.WriteAllText(jsonPath, json);
-                AssetDatabase.Refresh();
-                Debug.Log("Excel Database: Saving has been completed");
-            }
+                name = "column-list",
+                selectionType = SelectionType.None
+            };
+
+            splitView.Add(idList);
+            splitView.Add(columnList);
+            rootVisualElement.Add(splitView);
         }
 
-        private void ListIDs(IDictionary<string, string>[] table)
+        private void ListIDs()
         {
             var idList = rootVisualElement.Q<ListView>("id-list");
+            // 스크롤 시 KeyNotFoundException 방지
             idList.bindItem = null;
 
             idList.itemsSource = table;
@@ -69,21 +90,22 @@ namespace ExcelDatabase.Editor.GUI
             {
                 if (element is Label label)
                 {
-                    label.text = table[i]["ID"];
+                    label.text = table[i]["ID"] as string;
                 }
             }
 
             void OnSelectionChange(IEnumerable<object> selection)
             {
-                var columns = selection.First() as IDictionary<string, string>;
-                ListColumns(columns);
+                columns = selection.First() as Dictionary<string, object>;
+                ListColumns();
             }
         }
 
-        private void ListColumns(IDictionary<string, string> columns)
+        private void ListColumns()
         {
             var columnsWithoutID = columns.Skip(1);
             var columnList = rootVisualElement.Q<ListView>("column-list");
+            // 스크롤 시 KeyNotFoundException 방지
             columnList.bindItem = null;
 
             columnList.itemsSource = columnsWithoutID.ToList();
@@ -92,17 +114,28 @@ namespace ExcelDatabase.Editor.GUI
 
             VisualElement MakeItem()
             {
-                var field = new TextField();
+                var field = new TextField { multiline = true };
                 field.AddToClassList("list-field");
                 field.RegisterValueChangedCallback(OnValueChanged);
+                field.RegisterCallback<FocusOutEvent>(OnFocusOut);
                 return field;
 
                 void OnValueChanged(ChangeEvent<string> e)
                 {
                     if (e.target is TextField field)
                     {
-                        columns[field.label] = e.newValue;
+                        columns[field.label] =
+                            columns[field.label] is JArray
+                                ? new JArray(e.newValue.Split('\n'))
+                                : e.newValue;
                     }
+                }
+
+                void OnFocusOut(FocusOutEvent _)
+                {
+                    var json = JsonConvert.SerializeObject(table, Formatting.Indented);
+                    File.WriteAllText(jsonPath, json);
+                    AssetDatabase.Refresh();
                 }
             }
 
@@ -112,7 +145,9 @@ namespace ExcelDatabase.Editor.GUI
                 {
                     var column = columnsWithoutID.ElementAt(i);
                     field.label = column.Key;
-                    field.value = column.Value;
+                    field.value = column.Value is JArray array
+                        ? string.Join('\n', array)
+                        : column.Value as string;
                 }
             }
         }
