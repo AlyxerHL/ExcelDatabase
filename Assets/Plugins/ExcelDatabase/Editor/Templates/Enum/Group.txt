@@ -1,3 +1,4 @@
 
-            public enum $GROUP$ {#ROW#
+            public enum $GROUP$
+            {#ROW#
             }

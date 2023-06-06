@@ -1,5 +1,8 @@
-namespace ExcelDatabase {
-    public static partial class Em {
-        public static class $TABLE$ {#GROUP#        }
+namespace ExcelDatabase
+{
+    public static partial class Em
+    {
+        public static class $TABLE$
+        {#GROUP#        }
     }
 }

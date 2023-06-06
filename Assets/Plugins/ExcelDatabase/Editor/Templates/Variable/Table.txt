@@ -1,6 +1,9 @@
-namespace ExcelDatabase {
-    public static class Dv {
-        public static class $TABLE$ {#ROW#
+namespace ExcelDatabase
+{
+    public static class Dv
+    {
+        public static class $TABLE$
+        {#ROW#
         }
     }
 }
