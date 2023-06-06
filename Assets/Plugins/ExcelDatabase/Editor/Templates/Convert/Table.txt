@@ -1,18 +1,25 @@
+#nullable enable
+
 using System.Collections.Generic;
 using System.Linq;
 using ExcelDatabase.Scripts;
 
-namespace ExcelDatabase {
-    public static partial class Tb {
-        private static Table<$TABLE$Type> $TABLE$_Instance;
+namespace ExcelDatabase
+{
+    public static partial class Tb
+    {
+        private static Table<$TABLE$Type>? $TABLE$_Instance;
 
-        public static Table<$TABLE$Type> $TABLE$ {
-            get {
-                $TABLE$_Instance ??= new Table<$TABLE$Type>("$TABLE$");
+        public static Table<$TABLE$Type> $TABLE$
+        {
+            get
+            {
+                $TABLE$_Instance ??= new("$TABLE$");
                 return $TABLE$_Instance;
             }
         }
 
-        public class $TABLE$Type : TableType {#COL#        }
+        public class $TABLE$Type : TableType
+        {#COL#        }
     }
 }
