@@ -1,25 +1,28 @@
 #nullable enable
+#pragma warning disable CS8618
+#pragma warning disable IDE1006
 
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using ExcelDatabase.Scripts;
 
 namespace ExcelDatabase
 {
     public static partial class Tb
     {
-        private static Table<$TABLE$Type>? $TABLE$_Instance;
+        private static Table<$TABLE$Type>? _$TABLE$;
 
         public static Table<$TABLE$Type> $TABLE$
         {
             get
             {
-                $TABLE$_Instance ??= new("$TABLE$");
-                return $TABLE$_Instance;
+                _$TABLE$ ??= new("$TABLE$");
+                return _$TABLE$;
             }
         }
 
-        public class $TABLE$Type : TableType
+        public class $TABLE$Type : ITableType
         {#COL#        }
     }
 }

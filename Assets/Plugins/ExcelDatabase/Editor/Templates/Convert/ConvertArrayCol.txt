@@ -1,3 +1,4 @@
 
-            private readonly string[]? $NAME$_ID;
-            public IEnumerable<$TYPE$Type> $NAME$ => $NAME$_ID?.Select(id => $TYPE$[id]);
+            [JsonArray]
+            private readonly string[] _$NAME$;
+            public IEnumerable<$TYPE$Type> $NAME$ => _$NAME$.Select(id => $TYPE$[id]);

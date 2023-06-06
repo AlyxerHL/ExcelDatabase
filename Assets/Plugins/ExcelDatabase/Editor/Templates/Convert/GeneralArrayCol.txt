@@ -1,2 +1,3 @@
 
-            public readonly $TYPE$[]? $NAME$;
+            [JsonArray]
+            public $TYPE$[] $NAME$ { get; }

@@ -1,0 +1,3 @@
+
+            [JsonArray]
+            public $TYPE$[]? $NAME$ { get; }

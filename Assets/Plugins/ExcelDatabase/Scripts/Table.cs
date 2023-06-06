@@ -1,3 +1,5 @@
+#nullable enable
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,23 +9,22 @@ using UnityEngine;
 namespace ExcelDatabase.Scripts
 {
     public class Table<T> : IEnumerable<T>
-        where T : TableType
+        where T : ITableType
     {
-        private readonly Dictionary<string, T> _collection;
+        private readonly Dictionary<string, T> collection;
+        public T this[string id] => collection[id];
 
         public Table(string name)
         {
             var json = Resources.Load<TextAsset>($"ExcelDatabase/{name}");
-            _collection = JsonConvert
+            collection = JsonConvert
                 .DeserializeObject<T[]>(json.text)
-                ?.ToDictionary((row) => row.ID);
+                .ToDictionary((row) => row.ID);
         }
-
-        public T this[string id] => _collection[id];
 
         public IEnumerator<T> GetEnumerator()
         {
-            return _collection.Values.GetEnumerator();
+            return collection.Values.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
