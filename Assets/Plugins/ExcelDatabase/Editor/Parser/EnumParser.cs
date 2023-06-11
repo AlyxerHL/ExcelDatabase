@@ -67,40 +67,40 @@ namespace ExcelDatabase.Editor.Parser
 
                 var row = new Row(poiRow.GetCellValue(GroupCol), poiRow.GetCellValue(EnumCol));
 
-                if (row.Group?.Length == 0)
+                if (row.group?.Length == 0)
                 {
                     break;
                 }
 
-                if (char.IsDigit(row.Group, 0))
+                if (char.IsDigit(row.group, 0))
                 {
                     throw new ParserException(
                         tableName,
-                        $"Enum group '{row.Group}' starts with a number"
+                        $"Enum group '{row.group}' starts with a number"
                     );
                 }
 
-                if (row.Enum?.Length == 0)
+                if (row.enumName?.Length == 0)
                 {
                     throw new ParserException(
                         tableName,
-                        $"Enum value in group '{row.Group}' is empty"
+                        $"Enum value in group '{row.group}' is empty"
                     );
                 }
 
-                if (char.IsDigit(row.Enum, 0))
+                if (char.IsDigit(row.enumName, 0))
                 {
                     throw new ParserException(
                         tableName,
-                        $"Enum value '{row.Enum}' in group '{row.Group}' starts with a number"
+                        $"Enum value '{row.enumName}' in group '{row.group}' starts with a number"
                     );
                 }
 
-                if (!diffChecker.Add(row.Group + row.Enum))
+                if (!diffChecker.Add(row.group + row.enumName))
                 {
                     throw new ParserException(
                         tableName,
-                        $"Duplicate enum value '{row.Enum}' in group '{row.Group}'"
+                        $"Duplicate enum value '{row.enumName}' in group '{row.group}'"
                     );
                 }
 
@@ -117,19 +117,19 @@ namespace ExcelDatabase.Editor.Parser
 
             foreach (var row in rows)
             {
-                if (prevGroupValue != row.Group)
+                if (prevGroupValue != row.group)
                 {
-                    prevGroupValue = row.Group;
+                    prevGroupValue = row.group;
                     builder.Replace(RowTemplate, string.Empty);
                     var groupTemplate = File.ReadAllText(groupPath);
                     builder
                         .Replace(GroupTemplate, groupTemplate + GroupTemplate)
-                        .Replace(GroupVariable, row.Group);
+                        .Replace(GroupVariable, row.group);
                 }
 
                 builder
                     .Replace(RowTemplate, rowTemplate + RowTemplate)
-                    .Replace(RowVariable, row.Enum);
+                    .Replace(RowVariable, row.enumName);
             }
 
             builder.Replace(RowTemplate, string.Empty);
@@ -139,13 +139,13 @@ namespace ExcelDatabase.Editor.Parser
 
         private readonly struct Row
         {
-            public readonly string Group;
-            public readonly string Enum;
+            public string group { get; }
+            public string enumName { get; }
 
-            public Row(string group, string @enum)
+            public Row(string group, string enumName)
             {
-                Group = ParseUtility.Format(group);
-                Enum = ParseUtility.Format(@enum);
+                this.group = ParseUtility.Format(group);
+                this.enumName = ParseUtility.Format(enumName);
             }
         }
     }

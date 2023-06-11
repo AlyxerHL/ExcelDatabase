@@ -72,34 +72,34 @@ namespace ExcelDatabase.Editor.Parser
                     poiRow.GetCellValue(ValueCol)
                 );
 
-                if (row.Name?.Length == 0)
+                if (row.name?.Length == 0)
                 {
                     break;
                 }
 
-                if (char.IsDigit(row.Name, 0))
+                if (char.IsDigit(row.name, 0))
                 {
                     throw new ParserException(
                         tableName,
-                        $"Variable name '{row.Name}' starts with a number"
+                        $"Variable name '{row.name}' starts with a number"
                     );
                 }
 
-                if (!diffChecker.Add(row.Name))
+                if (!diffChecker.Add(row.name))
                 {
-                    throw new ParserException(tableName, $"Duplicate variable name '{row.Name}'");
+                    throw new ParserException(tableName, $"Duplicate variable name '{row.name}'");
                 }
 
-                if (!ParseUtility.typeValidators.ContainsKey(row.Type))
+                if (!ParseUtility.typeValidators.ContainsKey(row.type))
                 {
-                    throw new ParserException(tableName, $"Invalid variable type '{row.Type}'");
+                    throw new ParserException(tableName, $"Invalid variable type '{row.type}'");
                 }
 
-                if (!ParseUtility.typeValidators[row.Type](row.Value))
+                if (!ParseUtility.typeValidators[row.type](row.value))
                 {
                     throw new ParserException(
                         tableName,
-                        $"Variable value '{row.Value}' is not of variable type '{row.Type}'"
+                        $"Variable value '{row.value}' is not of variable type '{row.type}'"
                     );
                 }
 
@@ -117,15 +117,15 @@ namespace ExcelDatabase.Editor.Parser
             {
                 builder
                     .Replace(RowTemplate, rowTemplate + RowTemplate)
-                    .Replace(TypeVariable, row.Type)
-                    .Replace(NameVariable, row.Name)
+                    .Replace(TypeVariable, row.type)
+                    .Replace(NameVariable, row.name)
                     .Replace(
                         ValueVariable,
-                        row.Type switch
+                        row.type switch
                         {
-                            "float" => row.Value + 'f',
-                            "bool" => row.Value.ToLower(),
-                            _ => row.Value
+                            "float" => row.value + 'f',
+                            "bool" => row.value.ToLower(),
+                            _ => row.value
                         }
                     );
             }
@@ -136,15 +136,15 @@ namespace ExcelDatabase.Editor.Parser
 
         private readonly struct Row
         {
-            public readonly string Name;
-            public readonly string Type;
-            public readonly string Value;
+            public string name { get; }
+            public string type { get; }
+            public string value { get; }
 
             public Row(string name, string type, string value)
             {
-                Name = ParseUtility.Format(name);
-                Type = type;
-                Value = value;
+                this.name = ParseUtility.Format(name);
+                this.type = type;
+                this.value = value;
             }
         }
     }
