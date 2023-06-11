@@ -122,7 +122,7 @@ namespace ExcelDatabase.Editor.GUI
             listView.itemsSource = ResultSet.ToList();
             listView.makeItem = MakeItem;
             listView.bindItem = BindItem;
-            listView.onSelectionChange += OnSelectionChange;
+            listView.selectionChanged += HandleSelectionChanged;
 
             VisualElement MakeItem()
             {
@@ -139,7 +139,7 @@ namespace ExcelDatabase.Editor.GUI
                 }
             }
 
-            void OnSelectionChange(IEnumerable<object> selection)
+            void HandleSelectionChanged(IEnumerable<object> selection)
             {
                 _selection = selection.Cast<ParseResult>();
                 var editButton = rootVisualElement.Q<Button>("edit-button");
