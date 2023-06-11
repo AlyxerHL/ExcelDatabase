@@ -1,4 +1,4 @@
 
             [JsonProperty]
-            private readonly string _$NAME$;
+            private string _$NAME$;
             public $TYPE$Type $NAME$ => $TYPE$[_$NAME$];

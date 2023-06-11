@@ -1,6 +1,5 @@
 using System;
 using ExcelDatabase.Editor.Library;
-using Newtonsoft.Json;
 
 namespace ExcelDatabase.Editor.Parser
 {

@@ -1,5 +1,6 @@
 #nullable enable
 #pragma warning disable CS8618
+#pragma warning disable IDE0044
 #pragma warning disable IDE1006
 
 using System.Collections.Generic;

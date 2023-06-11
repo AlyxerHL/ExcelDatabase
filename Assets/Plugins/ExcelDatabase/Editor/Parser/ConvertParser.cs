@@ -81,7 +81,7 @@ namespace ExcelDatabase.Editor.Parser
             }
 
             var diffChecker = new HashSet<string>();
-            for (var i = 1; i <= nameRow.LastCellNum; i++)
+            for (var i = 0; i <= nameRow.LastCellNum; i++)
             {
                 var col = new Col(i, nameRow.GetCellValue(i), typeRow.GetCellValue(i));
                 if (col.Name.StartsWith(Config.excludePrefix))
@@ -212,7 +212,7 @@ namespace ExcelDatabase.Editor.Parser
                     }
 
                     row.Cells[
-                        col.TypeSpec == Col.TypeSpecification.Convert ? col.Name + "_ID" : col.Name
+                        col.TypeSpec == Col.TypeSpecification.Convert ? '_' + col.Name: col.Name
                     ] = col.IsArray ? cellValues : cell;
                 }
 
