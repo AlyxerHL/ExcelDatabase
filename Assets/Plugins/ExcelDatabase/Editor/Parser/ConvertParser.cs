@@ -59,7 +59,7 @@ namespace ExcelDatabase.Editor.Parser
         {
             var cols = ValidateCols().ToArray();
             var rows = ValidateRows(cols);
-            var script = BuildScript(cols);
+            var script = BuildScript(cols, rows);
             var jsonPath = WriteJson(rows);
             var distPath = ParseUtility.WriteScript(TableType.Convert, tableName, script);
 
@@ -211,38 +211,58 @@ namespace ExcelDatabase.Editor.Parser
                         }
                     }
 
-                    row.Cells[
-                        col.TypeSpec == Col.TypeSpecification.Convert ? '_' + col.Name: col.Name
-                    ] = col.IsArray ? cellValues : cell;
+                    row.Cells[col.BackingName] = col.IsArray ? cellValues : cell;
                 }
 
                 yield return row;
             }
         }
 
-        private string BuildScript(IEnumerable<Col> cols)
+        private string BuildScript(IEnumerable<Col> cols, IEnumerable<Row> rows)
         {
             var tableTemplate = File.ReadAllText(tablePath);
             var generalColTemplate = File.ReadAllText(generalColPath);
+            var generalNullableColTemplate = File.ReadAllText(generalNullableColPath);
             var convertColTemplate = File.ReadAllText(convertColPath);
+            var convertNullableColTemplate = File.ReadAllText(convertNullableColPath);
             var generalArrayColTemplate = File.ReadAllText(generalArrayColPath);
+            var generalNullableArrayColTemplate = File.ReadAllText(generalNullableArrayColPath);
             var convertArrayColTemplate = File.ReadAllText(convertArrayColPath);
+            var convertNullableArrayColTemplate = File.ReadAllText(convertNullableArrayColPath);
             var builder = new StringBuilder(tableTemplate).Replace(TableVariable, tableName);
 
             foreach (var col in cols)
             {
+                var isNullable = !rows.All((row) => row.Cells.ContainsKey(col.BackingName));
+
                 if (col.TypeSpec == Col.TypeSpecification.Convert)
                 {
                     builder.Replace(
                         ColTemplate,
-                        (col.IsArray ? convertArrayColTemplate : convertColTemplate) + ColTemplate
+                        (
+                            col.IsArray
+                                ? (
+                                    isNullable
+                                        ? convertNullableArrayColTemplate
+                                        : convertArrayColTemplate
+                                )
+                                : (isNullable ? convertNullableColTemplate : convertColTemplate)
+                        ) + ColTemplate
                     );
                 }
                 else
                 {
                     builder.Replace(
                         ColTemplate,
-                        (col.IsArray ? generalArrayColTemplate : generalColTemplate) + ColTemplate
+                        (
+                            col.IsArray
+                                ? (
+                                    isNullable
+                                        ? generalNullableArrayColTemplate
+                                        : generalArrayColTemplate
+                                )
+                                : (isNullable ? generalNullableColTemplate : generalColTemplate)
+                        ) + ColTemplate
                     );
                 }
 
@@ -278,6 +298,7 @@ namespace ExcelDatabase.Editor.Parser
         {
             public readonly int Index;
             public readonly string Name;
+            public readonly string BackingName;
             public readonly string Type;
             public readonly bool IsArray;
             public readonly TypeSpecification TypeSpec;
@@ -297,6 +318,8 @@ namespace ExcelDatabase.Editor.Parser
                     false when Type.StartsWith("DesignVariable") => TypeSpecification.Variable,
                     _ => TypeSpecification.None
                 };
+
+                BackingName = TypeSpec == TypeSpecification.Convert ? '_' + Name : Name;
             }
 
             public enum TypeSpecification
