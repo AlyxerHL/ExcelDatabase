@@ -7,7 +7,7 @@ namespace ExcelDatabase.Editor.Library
     {
         private static string _root;
 
-        private static string Root
+        private static string root
         {
             get
             {
@@ -23,8 +23,8 @@ namespace ExcelDatabase.Editor.Library
             }
         }
 
-        public static readonly string DistPath = $"{Root}/Dist";
-        public static readonly string TemplatePath = $"{Root}/Editor/Templates";
-        public const string ExcludePrefix = "#";
+        public static string distPath => $"{root}/Dist";
+        public static string templatePath => $"{root}/Editor/Templates";
+        public static string excludePrefix => "#";
     }
 }

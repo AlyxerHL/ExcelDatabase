@@ -9,7 +9,7 @@ namespace ExcelDatabase.Editor.Parser
 {
     public static class ParseUtility
     {
-        public static readonly Dictionary<string, Func<string, bool>> TypeValidators =
+        public static Dictionary<string, Func<string, bool>> typeValidators { get; } =
             new()
             {
                 { "string", (_) => true },
@@ -38,7 +38,7 @@ namespace ExcelDatabase.Editor.Parser
 
         public static string WriteScript(TableType type, string tableName, string script)
         {
-            var distDirectory = $"{Config.DistPath}/{type}";
+            var distDirectory = $"{Config.distPath}/{type}";
             if (!Directory.Exists(distDirectory))
             {
                 Directory.CreateDirectory(distDirectory);

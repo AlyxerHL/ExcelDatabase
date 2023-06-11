@@ -21,46 +21,46 @@ namespace ExcelDatabase.Editor.Parser
         private const string NameVariable = "$NAME$";
         private const string ValueVariable = "$VALUE$";
 
-        private static readonly string TablePath = $"{Config.TemplatePath}/Variable/Table.txt";
-        private static readonly string RowPath = $"{Config.TemplatePath}/Variable/Row.txt";
+        private static readonly string tablePath = $"{Config.templatePath}/Variable/Table.txt";
+        private static readonly string rowPath = $"{Config.templatePath}/Variable/Row.txt";
 
-        private readonly ISheet _sheet;
-        private readonly string _tableName;
-        private readonly string _excelPath;
+        private readonly ISheet sheet;
+        private readonly string tableName;
+        private readonly string excelPath;
 
         public VariableParser(Object file)
         {
             var path = AssetDatabase.GetAssetPath(file);
             using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
-            _sheet = new XSSFWorkbook(stream).GetSheetAt(0);
-            _tableName = ParseUtility.Format(file.name);
-            _excelPath = AssetDatabase.GetAssetPath(file);
+            sheet = new XSSFWorkbook(stream).GetSheetAt(0);
+            tableName = ParseUtility.Format(file.name);
+            excelPath = AssetDatabase.GetAssetPath(file);
         }
 
         public ParseResult Parse()
         {
             var rows = ValidateRows();
             var script = BuildScript(rows);
-            var distPath = ParseUtility.WriteScript(TableType.Variable, _tableName, script);
-            return new ParseResult(TableType.Variable, _tableName, _excelPath, new[] { distPath });
+            var distPath = ParseUtility.WriteScript(TableType.Variable, tableName, script);
+            return new ParseResult(TableType.Variable, tableName, excelPath, new[] { distPath });
         }
 
         private IEnumerable<Row> ValidateRows()
         {
-            var firstRow = _sheet.GetRow(0);
+            var firstRow = sheet.GetRow(0);
             if (
                 firstRow?.GetCellValue(NameCol) != "VariableName"
                 || firstRow.GetCellValue(TypeCol) != "DataType"
                 || firstRow.GetCellValue(ValueCol) != "Value"
             )
             {
-                throw new ParserException(_tableName, "Invalid column name");
+                throw new ParserException(tableName, "Invalid column name");
             }
 
             var diffChecker = new HashSet<string>();
-            for (var i = 1; i <= _sheet.LastRowNum; i++)
+            for (var i = 1; i <= sheet.LastRowNum; i++)
             {
-                var poiRow = _sheet.GetRow(i);
+                var poiRow = sheet.GetRow(i);
                 if (poiRow == null)
                 {
                     break;
@@ -80,25 +80,25 @@ namespace ExcelDatabase.Editor.Parser
                 if (char.IsDigit(row.Name, 0))
                 {
                     throw new ParserException(
-                        _tableName,
+                        tableName,
                         $"Variable name '{row.Name}' starts with a number"
                     );
                 }
 
                 if (!diffChecker.Add(row.Name))
                 {
-                    throw new ParserException(_tableName, $"Duplicate variable name '{row.Name}'");
+                    throw new ParserException(tableName, $"Duplicate variable name '{row.Name}'");
                 }
 
-                if (!ParseUtility.TypeValidators.ContainsKey(row.Type))
+                if (!ParseUtility.typeValidators.ContainsKey(row.Type))
                 {
-                    throw new ParserException(_tableName, $"Invalid variable type '{row.Type}'");
+                    throw new ParserException(tableName, $"Invalid variable type '{row.Type}'");
                 }
 
-                if (!ParseUtility.TypeValidators[row.Type](row.Value))
+                if (!ParseUtility.typeValidators[row.Type](row.Value))
                 {
                     throw new ParserException(
-                        _tableName,
+                        tableName,
                         $"Variable value '{row.Value}' is not of variable type '{row.Type}'"
                     );
                 }
@@ -109,9 +109,9 @@ namespace ExcelDatabase.Editor.Parser
 
         private string BuildScript(IEnumerable<Row> rows)
         {
-            var tableTemplate = File.ReadAllText(TablePath);
-            var rowTemplate = File.ReadAllText(RowPath);
-            var builder = new StringBuilder(tableTemplate).Replace(TableVariable, _tableName);
+            var tableTemplate = File.ReadAllText(tablePath);
+            var rowTemplate = File.ReadAllText(rowPath);
+            var builder = new StringBuilder(tableTemplate).Replace(TableVariable, tableName);
 
             foreach (var row in rows)
             {
