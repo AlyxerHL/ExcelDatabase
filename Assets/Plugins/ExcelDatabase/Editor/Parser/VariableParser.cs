@@ -9,11 +9,12 @@ using Object = UnityEngine.Object;
 
 namespace ExcelDatabase.Editor.Parser
 {
-    public class VariableParser : IParser
+    public class VariableParser
     {
         private const int NameCol = 0;
         private const int TypeCol = 1;
         private const int ValueCol = 2;
+        private const int NameRow = 0;
 
         private const string RowTemplate = "#ROW#";
         private const string TableVariable = "$TABLE$";
@@ -40,28 +41,27 @@ namespace ExcelDatabase.Editor.Parser
         public ParseResult Parse()
         {
             var rows = ValidateRows();
-            var script = BuildScript(rows);
-            var distPath = ParseUtility.WriteScript(TableType.Variable, tableName, script);
-            return new ParseResult(TableType.Variable, tableName, excelPath, new[] { distPath });
+            File.WriteAllText(Config.DistPath(tableName, TableType.Variable), BuildScript(rows));
+            return new ParseResult(TableType.Variable, tableName, excelPath);
         }
 
         private IEnumerable<Row> ValidateRows()
         {
-            var firstRow = sheet.GetRow(0);
+            var nameRow = sheet.GetRow(NameRow);
             if (
-                firstRow?.GetCellValue(NameCol) != "VariableName"
-                || firstRow.GetCellValue(TypeCol) != "DataType"
-                || firstRow.GetCellValue(ValueCol) != "Value"
+                nameRow?.GetCellValue(NameCol) != "VariableName"
+                || nameRow.GetCellValue(TypeCol) != "DataType"
+                || nameRow.GetCellValue(ValueCol) != "Value"
             )
             {
                 throw new ParserException(tableName, "Invalid column name");
             }
 
             var diffChecker = new HashSet<string>();
-            for (var i = 1; i <= sheet.LastRowNum; i++)
+            for (var i = NameRow + 1; i <= sheet.LastRowNum; i++)
             {
                 var poiRow = sheet.GetRow(i);
-                if (poiRow == null)
+                if (poiRow is null)
                 {
                     break;
                 }

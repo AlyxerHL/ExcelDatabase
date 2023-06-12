@@ -16,21 +16,21 @@ namespace ExcelDatabase.Editor.GUI
     {
         private static IEnumerable<ParseResult> selectedResults;
 
-        private static SortedSet<ParseResult> _resultSet;
+        private static SortedSet<ParseResult> resultSet_;
         private static SortedSet<ParseResult> resultSet
         {
             get
             {
-                _resultSet ??= File.Exists(resultPath)
+                resultSet_ ??= File.Exists(resultPath)
                     ? JsonConvert.DeserializeObject<SortedSet<ParseResult>>(
                         File.ReadAllText(resultPath)
                     )
                     : new();
-                return _resultSet;
+                return resultSet_;
             }
         }
 
-        private static string resultPath => $"{Config.distPath}/ParseResult.json";
+        private static string resultPath => $"{Config.root}/Dist/ParseResult.json";
 
         [MenuItem("Tools/Excel Database/Show Manager")]
         public static void ShowManager()
@@ -93,7 +93,7 @@ namespace ExcelDatabase.Editor.GUI
 
             void HandleEdit(ClickEvent _)
             {
-                JsonEditor.Open(selectedResults.First().distPaths[1]);
+                JsonEditor.Open(Config.JsonPath(selectedResults.First().name));
             }
 
             void HandleParse(ClickEvent _)
@@ -159,25 +159,26 @@ namespace ExcelDatabase.Editor.GUI
         {
             foreach (var file in files.Where(IsExcelFile))
             {
-                IParser parser = type switch
-                {
-                    TableType.Convert => new ConvertParser(file),
-                    TableType.Enum => new EnumParser(file),
-                    TableType.Variable => new VariableParser(file),
-                    _ => throw new ArgumentOutOfRangeException()
-                };
-
                 try
                 {
-                    var result = parser.Parse();
-                    if (resultSet.Add(result))
+                    var result = type switch
                     {
-                        SyncResultSet();
-                    }
+                        TableType.Convert => new ConvertParser(file).Parse(),
+                        TableType.Enum => new EnumParser(file).Parse(),
+                        TableType.Variable => new VariableParser(file).Parse(),
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
+
+                    resultSet.Add(result);
+                    SyncResultSet();
                 }
                 catch (ParserException e)
                 {
                     Debug.LogError($"{e.tableName}: {e.Message}");
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    Debug.LogError($"{file.name}: Please remove and parse again");
                 }
             }
 
@@ -198,9 +199,11 @@ namespace ExcelDatabase.Editor.GUI
             foreach (var table in tables)
             {
                 resultSet.Remove(table);
-                foreach (var distPath in table.distPaths)
+                AssetDatabase.DeleteAsset(Config.DistPath(table.name, table.type));
+
+                if (table.type == TableType.Convert)
                 {
-                    AssetDatabase.DeleteAsset(distPath);
+                    AssetDatabase.DeleteAsset(Config.JsonPath(table.name));
                 }
             }
 

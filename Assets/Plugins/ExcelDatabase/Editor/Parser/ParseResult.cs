@@ -8,14 +8,12 @@ namespace ExcelDatabase.Editor.Parser
         public TableType type { get; }
         public string name { get; }
         public string excelPath { get; }
-        public string[] distPaths { get; }
 
-        public ParseResult(TableType type, string name, string excelPath, string[] distPaths)
+        public ParseResult(TableType type, string name, string excelPath)
         {
             this.type = type;
             this.name = name;
             this.excelPath = excelPath;
-            this.distPaths = distPaths;
         }
 
         public override string ToString()

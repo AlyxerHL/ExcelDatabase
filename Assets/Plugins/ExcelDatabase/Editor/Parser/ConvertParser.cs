@@ -12,7 +12,7 @@ using Object = UnityEngine.Object;
 
 namespace ExcelDatabase.Editor.Parser
 {
-    public class ConvertParser : IParser
+    public class ConvertParser
     {
         private const int NameRow = 0;
         private const int TypeRow = 1;
@@ -24,23 +24,24 @@ namespace ExcelDatabase.Editor.Parser
         private const string TypeVariable = "$TYPE$";
         private const string NameVariable = "$NAME$";
 
-        private static readonly string tablePath = $"{Config.templatePath}/Convert/Table.txt";
-        private static readonly string generalColPath =
-            $"{Config.templatePath}/Convert/GeneralCol.txt";
-        private static readonly string generalNullableColPath =
-            $"{Config.templatePath}/Convert/GeneralNullableCol.txt";
-        private static readonly string convertColPath =
-            $"{Config.templatePath}/Convert/ConvertCol.txt";
-        private static readonly string convertNullableColPath =
-            $"{Config.templatePath}/Convert/ConvertNullableCol.txt";
-        private static readonly string generalArrayColPath =
-            $"{Config.templatePath}/Convert/GeneralArrayCol.txt";
-        private static readonly string generalNullableArrayColPath =
-            $"{Config.templatePath}/Convert/GeneralNullableArrayCol.txt";
-        private static readonly string convertArrayColPath =
-            $"{Config.templatePath}/Convert/ConvertArrayCol.txt";
-        private static readonly string convertNullableArrayColPath =
-            $"{Config.templatePath}/Convert/ConvertNullableArrayCol.txt";
+        private static readonly Lazy<string> tableTemplate =
+            new(() => File.ReadAllText($"{Config.templatePath}/Convert/Table.txt"));
+        private static readonly Lazy<string> generalCol =
+            new(() => File.ReadAllText($"{Config.templatePath}/Convert/GeneralCol.txt"));
+        private static readonly Lazy<string> generalNullCol =
+            new(() => File.ReadAllText($"{Config.templatePath}/Convert/GeneralNullCol.txt"));
+        private static readonly Lazy<string> convertCol =
+            new(() => File.ReadAllText($"{Config.templatePath}/Convert/ConvertCol.txt"));
+        private static readonly Lazy<string> convertNullCol =
+            new(() => File.ReadAllText($"{Config.templatePath}/Convert/ConvertNullCol.txt"));
+        private static readonly Lazy<string> generalArrCol =
+            new(() => File.ReadAllText($"{Config.templatePath}/Convert/GeneralArrCol.txt"));
+        private static readonly Lazy<string> generalNullArrCol =
+            new(() => File.ReadAllText($"{Config.templatePath}/Convert/GeneralNullArrCol.txt"));
+        private static readonly Lazy<string> convertArrCol =
+            new(() => File.ReadAllText($"{Config.templatePath}/Convert/ConvertArrCol.txt"));
+        private static readonly Lazy<string> convertNullArrCol =
+            new(() => File.ReadAllText($"{Config.templatePath}/Convert/ConvertNullArrCol.txt"));
 
         private readonly ISheet sheet;
         private readonly string tableName;
@@ -57,21 +58,35 @@ namespace ExcelDatabase.Editor.Parser
 
         public ParseResult Parse()
         {
-            var cols = ValidateCols().ToArray();
-            var rows = ValidateRows(cols);
-            var script = BuildScript(cols, rows);
-            var jsonPath = WriteJson(rows);
-            var distPath = ParseUtility.WriteScript(TableType.Convert, tableName, script);
+            var ids = ValidateIDs();
+            var cols = ValidateCols(ids);
+            File.WriteAllText(Config.DistPath(tableName, TableType.Convert), BuildScript(cols));
+            File.WriteAllText(Config.JsonPath(tableName), BuildJson(cols));
 
-            return new ParseResult(
-                TableType.Convert,
-                tableName,
-                excelPath,
-                new[] { distPath, jsonPath }
-            );
+            return new ParseResult(TableType.Convert, tableName, excelPath);
         }
 
-        private IEnumerable<Col> ValidateCols()
+        private IEnumerable<string> ValidateIDs()
+        {
+            var diffChecker = new HashSet<string>();
+            for (var i = TypeRow + 1; i <= sheet.LastRowNum; i++)
+            {
+                var id = sheet.GetRow(i)?.GetCellValue(IDCol);
+                if (id?.Length == 0)
+                {
+                    break;
+                }
+
+                if (!diffChecker.Add(id))
+                {
+                    throw new ParserException(tableName, $"Duplicate ID '{id}'");
+                }
+
+                yield return id;
+            }
+        }
+
+        private IEnumerable<Col> ValidateCols(IEnumerable<string> ids)
         {
             var nameRow = sheet.GetRow(NameRow);
             var typeRow = sheet.GetRow(TypeRow);
@@ -81,15 +96,15 @@ namespace ExcelDatabase.Editor.Parser
             }
 
             var diffChecker = new HashSet<string>();
-            for (var i = 0; i <= nameRow.LastCellNum; i++)
+            for (var colIndex = IDCol; colIndex <= nameRow.LastCellNum; colIndex++)
             {
-                var col = new Col(i, nameRow.GetCellValue(i), typeRow.GetCellValue(i));
+                var col = new Col(nameRow.GetCellValue(colIndex), typeRow.GetCellValue(colIndex));
                 if (col.name.StartsWith(Config.excludePrefix))
                 {
                     continue;
                 }
 
-                if (col.name?.Length == 0)
+                if (col.name.Length == 0)
                 {
                     break;
                 }
@@ -107,14 +122,6 @@ namespace ExcelDatabase.Editor.Parser
                     throw new ParserException(tableName, $"Duplicate column name '{col.name}'");
                 }
 
-                bool TypeExists(string type)
-                {
-                    var systemType = Type.GetType(
-                        $"ExcelDatabase.{type.Replace('.', '+')}, Assembly-CSharp-firstpass"
-                    );
-                    return systemType != null || type == $"Tb.{tableName}Type";
-                }
-
                 switch (col.typeSpec)
                 {
                     case Col.TypeSpec.None:
@@ -128,45 +135,23 @@ namespace ExcelDatabase.Editor.Parser
                         );
                 }
 
-                yield return col;
-            }
-        }
-
-        private IEnumerable<Row> ValidateRows(Col[] cols)
-        {
-            var diffChecker = new HashSet<string>();
-            for (var i = 2; i <= sheet.LastRowNum; i++)
-            {
-                var poiRow = sheet.GetRow(i);
-                if (poiRow == null)
+                var rowIndex = TypeRow;
+                foreach (var id in ids)
                 {
-                    break;
-                }
+                    rowIndex++;
+                    var cell = sheet.GetRow(rowIndex).GetCellValue(colIndex);
 
-                var row = new Row(poiRow.GetCellValue(IDCol));
-                if (row.id?.Length == 0)
-                {
-                    break;
-                }
-
-                if (!diffChecker.Add(row.id))
-                {
-                    throw new ParserException(tableName, $"Duplicate ID '{row.id}'");
-                }
-
-                foreach (var col in cols)
-                {
-                    var cell = poiRow.GetCellValue(col.index);
                     if (cell.StartsWith(Config.excludePrefix))
                     {
+                        col.cells[id] = null;
                         continue;
                     }
 
-                    if (cell?.Length == 0)
+                    if (cell.Length == 0)
                     {
                         throw new ParserException(
                             tableName,
-                            $"An empty cell exists in column '{col.name}' of '{row.id}'"
+                            $"An empty cell exists in column '{col.name}' of '{id}'"
                         );
                     }
 
@@ -175,7 +160,7 @@ namespace ExcelDatabase.Editor.Parser
                     {
                         throw new ParserException(
                             tableName,
-                            $"The cell in column '{col.name}' of '{row.id}' is array, "
+                            $"The cell in column '{col.name}' of '{id}' is array, "
                                 + "but its type is not an array"
                         );
                     }
@@ -189,7 +174,7 @@ namespace ExcelDatabase.Editor.Parser
                     {
                         throw new ParserException(
                             tableName,
-                            $"The cell in column '{col.name}' of '{row.id}' type mismatch"
+                            $"The cell in column '{col.name}' of '{id}' type mismatch"
                         );
                     }
 
@@ -200,40 +185,39 @@ namespace ExcelDatabase.Editor.Parser
                         );
 
                         if (
-                            type == null
+                            type is null
                             || cellValues.Any((cellValue) => !Enum.IsDefined(type, cellValue))
                         )
                         {
                             throw new ParserException(
                                 tableName,
-                                $"The cell in column '{col.name}' of '{row.id}' type mismatch"
+                                $"The cell in column '{col.name}' of '{id}' type mismatch"
                             );
                         }
                     }
 
-                    row.cells[col.backingName] = col.isArray ? cellValues : cell;
+                    col.cells[id] = col.isArray ? cellValues : cell;
                 }
 
-                yield return row;
+                yield return col;
+            }
+
+            bool TypeExists(string type)
+            {
+                var systemType = Type.GetType(
+                    $"ExcelDatabase.{type.Replace('.', '+')}, Assembly-CSharp-firstpass"
+                );
+                return systemType is not null || type == $"Tb.{tableName}Type";
             }
         }
 
-        private string BuildScript(IEnumerable<Col> cols, IEnumerable<Row> rows)
+        private string BuildScript(IEnumerable<Col> cols)
         {
-            var tableTemplate = File.ReadAllText(tablePath);
-            var generalColTemplate = File.ReadAllText(generalColPath);
-            var generalNullableColTemplate = File.ReadAllText(generalNullableColPath);
-            var convertColTemplate = File.ReadAllText(convertColPath);
-            var convertNullableColTemplate = File.ReadAllText(convertNullableColPath);
-            var generalArrayColTemplate = File.ReadAllText(generalArrayColPath);
-            var generalNullableArrayColTemplate = File.ReadAllText(generalNullableArrayColPath);
-            var convertArrayColTemplate = File.ReadAllText(convertArrayColPath);
-            var convertNullableArrayColTemplate = File.ReadAllText(convertNullableArrayColPath);
-            var builder = new StringBuilder(tableTemplate).Replace(TableVariable, tableName);
+            var builder = new StringBuilder(tableTemplate.Value).Replace(TableVariable, tableName);
 
             foreach (var col in cols)
             {
-                var isNullable = !rows.All((row) => row.cells.ContainsKey(col.backingName));
+                var isNullable = col.cells.Any((cell) => cell.Value is null);
 
                 if (col.typeSpec == Col.TypeSpec.Convert)
                 {
@@ -241,12 +225,8 @@ namespace ExcelDatabase.Editor.Parser
                         ColTemplate,
                         (
                             col.isArray
-                                ? (
-                                    isNullable
-                                        ? convertNullableArrayColTemplate
-                                        : convertArrayColTemplate
-                                )
-                                : (isNullable ? convertNullableColTemplate : convertColTemplate)
+                                ? (isNullable ? convertNullArrCol.Value : convertArrCol.Value)
+                                : (isNullable ? convertNullCol.Value : convertCol.Value)
                         ) + ColTemplate
                     );
                 }
@@ -256,12 +236,8 @@ namespace ExcelDatabase.Editor.Parser
                         ColTemplate,
                         (
                             col.isArray
-                                ? (
-                                    isNullable
-                                        ? generalNullableArrayColTemplate
-                                        : generalArrayColTemplate
-                                )
-                                : (isNullable ? generalNullableColTemplate : generalColTemplate)
+                                ? (isNullable ? generalNullArrCol.Value : generalArrCol.Value)
+                                : (isNullable ? generalNullCol.Value : generalCol.Value)
                         ) + ColTemplate
                     );
                 }
@@ -278,36 +254,36 @@ namespace ExcelDatabase.Editor.Parser
             return builder.ToString();
         }
 
-        private string WriteJson(IEnumerable<Row> rows)
+        private string BuildJson(IEnumerable<Col> cols)
         {
-            var cells = rows.Select((row) => row.cells);
-            var json = JsonConvert.SerializeObject(cells, Formatting.Indented);
-            const string DistDirectory = "Assets/Resources/ExcelDatabase";
+            var ids = cols.First().cells.Keys;
+            var json = ids.Select(
+                (id) =>
+                    cols.Where((col) => col.cells[id] is not null)
+                        .ToDictionary(
+                            (col) =>
+                                col.typeSpec == Col.TypeSpec.Convert ? '_' + col.name : col.name,
+                            (col) => col.cells[id]
+                        )
+            );
 
-            if (!Directory.Exists(DistDirectory))
-            {
-                Directory.CreateDirectory(DistDirectory);
-            }
-
-            var distPath = $"{DistDirectory}/{tableName}.json";
-            File.WriteAllText(distPath, json);
-            return distPath;
+            return JsonConvert.SerializeObject(json, Formatting.Indented);
         }
 
         private readonly struct Col
         {
-            public int index { get; }
             public string name { get; }
-            public string backingName { get; }
             public string type { get; }
             public bool isArray { get; }
             public TypeSpec typeSpec { get; }
+            public Dictionary<string, object> cells { get; }
 
-            public Col(int index, string name, string type)
+            public Col(string name, string type)
             {
-                this.index = index;
                 this.name = ParseUtility.Format(name);
                 this.type = ParseUtility.Format(type);
+                isArray = type.EndsWith("[]");
+                cells = new();
 
                 typeSpec = ParseUtility.typeValidators.ContainsKey(this.type) switch
                 {
@@ -317,9 +293,6 @@ namespace ExcelDatabase.Editor.Parser
                     false when this.type.StartsWith("DesignVariable") => TypeSpec.Variable,
                     _ => TypeSpec.None
                 };
-
-                isArray = type.EndsWith("[]");
-                backingName = typeSpec == TypeSpec.Convert ? '_' + this.name : this.name;
             }
 
             public enum TypeSpec
@@ -329,18 +302,6 @@ namespace ExcelDatabase.Editor.Parser
                 Convert,
                 Enum,
                 Variable
-            }
-        }
-
-        private readonly struct Row
-        {
-            public string id { get; }
-            public Dictionary<string, object> cells { get; }
-
-            public Row(string id)
-            {
-                this.id = id;
-                cells = new Dictionary<string, object> { { "ID", id } };
             }
         }
     }

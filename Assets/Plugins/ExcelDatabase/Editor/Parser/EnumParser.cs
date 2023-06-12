@@ -9,10 +9,11 @@ using UnityEngine;
 
 namespace ExcelDatabase.Editor.Parser
 {
-    public class EnumParser : IParser
+    public class EnumParser
     {
         private const int GroupCol = 0;
         private const int EnumCol = 1;
+        private const int NameRow = 0;
 
         private const string GroupTemplate = "#GROUP#";
         private const string RowTemplate = "#ROW#";
@@ -40,27 +41,26 @@ namespace ExcelDatabase.Editor.Parser
         public ParseResult Parse()
         {
             var rows = ValidateRows();
-            var script = BuildScript(rows);
-            var distPath = ParseUtility.WriteScript(TableType.Enum, tableName, script);
-            return new ParseResult(TableType.Enum, tableName, excelPath, new[] { distPath });
+            File.WriteAllText(Config.DistPath(tableName, TableType.Enum), BuildScript(rows));
+            return new ParseResult(TableType.Enum, tableName, excelPath);
         }
 
         private IEnumerable<Row> ValidateRows()
         {
-            var firstRow = sheet.GetRow(0);
+            var nameRow = sheet.GetRow(NameRow);
             if (
-                firstRow?.GetCellValue(GroupCol) != "EnumGroup"
-                || firstRow.GetCellValue(EnumCol) != "Enum"
+                nameRow?.GetCellValue(GroupCol) != "EnumGroup"
+                || nameRow.GetCellValue(EnumCol) != "Enum"
             )
             {
                 throw new ParserException(tableName, "Invalid column name");
             }
 
             var diffChecker = new HashSet<string>();
-            for (var i = 1; i <= sheet.LastRowNum; i++)
+            for (var i = NameRow + 1; i <= sheet.LastRowNum; i++)
             {
                 var poiRow = sheet.GetRow(i);
-                if (poiRow == null)
+                if (poiRow is null)
                 {
                     break;
                 }
