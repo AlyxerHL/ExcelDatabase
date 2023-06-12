@@ -72,7 +72,7 @@ namespace ExcelDatabase.Editor.Parser
             for (var i = TypeRow + 1; i <= sheet.LastRowNum; i++)
             {
                 var id = sheet.GetRow(i)?.GetCellValue(IDCol);
-                if (id?.Length == 0)
+                if (id is null || id.Length == 0)
                 {
                     break;
                 }
