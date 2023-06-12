@@ -14,23 +14,23 @@ namespace ExcelDatabase.Editor.GUI
 {
     public class Manager : EditorWindow
     {
-        private static IEnumerable<ParseResult> _selection;
-        private static SortedSet<ParseResult> _resultSet;
+        private static IEnumerable<ParseResult> selectedResults;
 
-        private static SortedSet<ParseResult> ResultSet
+        private static SortedSet<ParseResult> resultSet_;
+        private static SortedSet<ParseResult> resultSet
         {
             get
             {
-                _resultSet ??= File.Exists(ResultPath)
+                resultSet_ ??= File.Exists(resultPath)
                     ? JsonConvert.DeserializeObject<SortedSet<ParseResult>>(
-                        File.ReadAllText(ResultPath)
+                        File.ReadAllText(resultPath)
                     )
                     : new();
-                return _resultSet;
+                return resultSet_;
             }
         }
 
-        private static string ResultPath => $"{Config.DistPath}/ParseResult.json";
+        private static string resultPath => $"{Config.root}/Dist/ParseResult.json";
 
         [MenuItem("Tools/Excel Database/Show Manager")]
         public static void ShowManager()
@@ -93,15 +93,15 @@ namespace ExcelDatabase.Editor.GUI
 
             void HandleEdit(ClickEvent _)
             {
-                JsonEditor.Open(_selection.First().DistPaths[1]);
+                JsonEditor.Open(Config.JsonPath(selectedResults.First().name));
             }
 
             void HandleParse(ClickEvent _)
             {
-                foreach (var parseResults in _selection.GroupBy(table => table.Type))
+                foreach (var parseResults in selectedResults.GroupBy(table => table.type))
                 {
                     var files = parseResults.Select(
-                        (table) => AssetDatabase.LoadAssetAtPath<Object>(table.ExcelPath)
+                        (table) => AssetDatabase.LoadAssetAtPath<Object>(table.excelPath)
                     );
                     ParseTables(files, parseResults.Key);
                 }
@@ -109,7 +109,7 @@ namespace ExcelDatabase.Editor.GUI
 
             void HandleRemove(ClickEvent _)
             {
-                RemoveTables(_selection);
+                RemoveTables(selectedResults);
             }
         }
 
@@ -119,10 +119,10 @@ namespace ExcelDatabase.Editor.GUI
             // 스크롤 시 KeyNotFoundException 방지
             listView.bindItem = null;
 
-            listView.itemsSource = ResultSet.ToList();
+            listView.itemsSource = resultSet.ToList();
             listView.makeItem = MakeItem;
             listView.bindItem = BindItem;
-            listView.onSelectionChange += OnSelectionChange;
+            listView.selectionChanged += HandleSelectionChanged;
 
             VisualElement MakeItem()
             {
@@ -135,22 +135,23 @@ namespace ExcelDatabase.Editor.GUI
             {
                 if (element is Label label)
                 {
-                    label.text = ResultSet.ElementAt(i).ToString();
+                    label.text = resultSet.ElementAt(i).ToString();
                 }
             }
 
-            void OnSelectionChange(IEnumerable<object> selection)
+            void HandleSelectionChanged(IEnumerable<object> selection)
             {
-                _selection = selection.Cast<ParseResult>();
+                selectedResults = selection.Cast<ParseResult>();
                 var editButton = rootVisualElement.Q<Button>("edit-button");
                 editButton.SetEnabled(
-                    _selection?.Count() == 1 && _selection?.First().Type == TableType.Convert
+                    selectedResults?.Count() == 1
+                        && selectedResults?.First().type == TableType.Convert
                 );
 
                 var parseButton = rootVisualElement.Q<Button>("parse-button");
-                parseButton.SetEnabled(_selection?.Count() > 0);
+                parseButton.SetEnabled(selectedResults?.Count() > 0);
                 var removeButton = rootVisualElement.Q<Button>("remove-button");
-                removeButton.SetEnabled(_selection?.Count() > 0);
+                removeButton.SetEnabled(selectedResults?.Count() > 0);
             }
         }
 
@@ -158,25 +159,26 @@ namespace ExcelDatabase.Editor.GUI
         {
             foreach (var file in files.Where(IsExcelFile))
             {
-                IParser parser = type switch
-                {
-                    TableType.Convert => new ConvertParser(file),
-                    TableType.Enum => new EnumParser(file),
-                    TableType.Variable => new VariableParser(file),
-                    _ => throw new ArgumentOutOfRangeException()
-                };
-
                 try
                 {
-                    var result = parser.Parse();
-                    if (ResultSet.Add(result))
+                    var result = type switch
                     {
-                        SyncResultSet();
-                    }
+                        TableType.Convert => new ConvertParser(file).Parse(),
+                        TableType.Enum => new EnumParser(file).Parse(),
+                        TableType.Variable => new VariableParser(file).Parse(),
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
+
+                    resultSet.Add(result);
+                    SyncResultSet();
                 }
                 catch (ParserException e)
                 {
-                    Debug.LogError($"{e.TableName}: {e.Message}");
+                    Debug.LogError($"{e.tableName}: {e.Message}");
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    Debug.LogError($"{file.name}: Please remove and parse again");
                 }
             }
 
@@ -188,7 +190,7 @@ namespace ExcelDatabase.Editor.GUI
             {
                 var path = AssetDatabase.GetAssetPath(file);
                 return Path.GetExtension(path) == ".xlsx"
-                    && !Path.GetFileName(path).StartsWith(Config.ExcludePrefix);
+                    && !Path.GetFileName(path).StartsWith(Config.excludePrefix);
             }
         }
 
@@ -196,10 +198,12 @@ namespace ExcelDatabase.Editor.GUI
         {
             foreach (var table in tables)
             {
-                ResultSet.Remove(table);
-                foreach (var distPath in table.DistPaths)
+                resultSet.Remove(table);
+                AssetDatabase.DeleteAsset(Config.DistPath(table.name, table.type));
+
+                if (table.type == TableType.Convert)
                 {
-                    AssetDatabase.DeleteAsset(distPath);
+                    AssetDatabase.DeleteAsset(Config.JsonPath(table.name));
                 }
             }
 
@@ -209,8 +213,8 @@ namespace ExcelDatabase.Editor.GUI
 
         private static void SyncResultSet()
         {
-            var json = JsonConvert.SerializeObject(ResultSet, Formatting.Indented);
-            File.WriteAllText(ResultPath, json);
+            var json = JsonConvert.SerializeObject(resultSet, Formatting.Indented);
+            File.WriteAllText(resultPath, json);
         }
     }
 }

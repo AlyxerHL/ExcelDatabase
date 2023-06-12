@@ -1,0 +1,4 @@
+
+            [JsonProperty]
+            private string[]? _$NAME$;
+            public IEnumerable<$TYPE$Type>? $NAME$ => _$NAME$?.Select(id => $TYPE$[id]);

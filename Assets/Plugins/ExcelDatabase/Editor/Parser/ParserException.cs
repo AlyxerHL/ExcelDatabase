@@ -4,7 +4,7 @@ namespace ExcelDatabase.Editor.Parser
 {
     public class ParserException : Exception
     {
-        public readonly string TableName;
+        public string tableName { get; }
 
         public ParserException() { }
 
@@ -17,13 +17,13 @@ namespace ExcelDatabase.Editor.Parser
         public ParserException(string tableName, string message)
             : base(message)
         {
-            TableName = tableName;
+            this.tableName = tableName;
         }
 
         public ParserException(string tableName, string message, Exception innerException)
             : base(message, innerException)
         {
-            TableName = tableName;
+            this.tableName = tableName;
         }
     }
 }

@@ -77,7 +77,7 @@ namespace ExcelDatabase.Editor.GUI
             idList.itemsSource = table;
             idList.makeItem = MakeItem;
             idList.bindItem = BindItem;
-            idList.onSelectionChange += OnSelectionChange;
+            idList.selectionChanged += HandleSelectionChanged;
 
             VisualElement MakeItem()
             {
@@ -94,7 +94,7 @@ namespace ExcelDatabase.Editor.GUI
                 }
             }
 
-            void OnSelectionChange(IEnumerable<object> selection)
+            void HandleSelectionChanged(IEnumerable<object> selection)
             {
                 columns = selection.First() as Dictionary<string, object>;
                 ListColumns();

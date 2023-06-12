@@ -9,10 +9,11 @@ using UnityEngine;
 
 namespace ExcelDatabase.Editor.Parser
 {
-    public class EnumParser : IParser
+    public class EnumParser
     {
         private const int GroupCol = 0;
         private const int EnumCol = 1;
+        private const int NameRow = 0;
 
         private const string GroupTemplate = "#GROUP#";
         private const string RowTemplate = "#ROW#";
@@ -20,87 +21,86 @@ namespace ExcelDatabase.Editor.Parser
         private const string GroupVariable = "$GROUP$";
         private const string RowVariable = "$ROW$";
 
-        private static readonly string TablePath = $"{Config.TemplatePath}/Enum/Table.txt";
-        private static readonly string GroupPath = $"{Config.TemplatePath}/Enum/Group.txt";
-        private static readonly string RowPath = $"{Config.TemplatePath}/Enum/Row.txt";
+        private static readonly string tablePath = $"{Config.templatePath}/Enum/Table.txt";
+        private static readonly string groupPath = $"{Config.templatePath}/Enum/Group.txt";
+        private static readonly string rowPath = $"{Config.templatePath}/Enum/Row.txt";
 
-        private readonly ISheet _sheet;
-        private readonly string _tableName;
-        private readonly string _excelPath;
+        private readonly ISheet sheet;
+        private readonly string tableName;
+        private readonly string excelPath;
 
         public EnumParser(Object file)
         {
             var path = AssetDatabase.GetAssetPath(file);
             using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
-            _sheet = new XSSFWorkbook(stream).GetSheetAt(0);
-            _tableName = ParseUtility.Format(file.name);
-            _excelPath = AssetDatabase.GetAssetPath(file);
+            sheet = new XSSFWorkbook(stream).GetSheetAt(0);
+            tableName = ParseUtility.Format(file.name);
+            excelPath = AssetDatabase.GetAssetPath(file);
         }
 
         public ParseResult Parse()
         {
             var rows = ValidateRows();
-            var script = BuildScript(rows);
-            var distPath = ParseUtility.WriteScript(TableType.Enum, _tableName, script);
-            return new ParseResult(TableType.Enum, _tableName, _excelPath, new[] { distPath });
+            File.WriteAllText(Config.DistPath(tableName, TableType.Enum), BuildScript(rows));
+            return new ParseResult(TableType.Enum, tableName, excelPath);
         }
 
         private IEnumerable<Row> ValidateRows()
         {
-            var firstRow = _sheet.GetRow(0);
+            var nameRow = sheet.GetRow(NameRow);
             if (
-                firstRow?.GetCellValue(GroupCol) != "EnumGroup"
-                || firstRow.GetCellValue(EnumCol) != "Enum"
+                nameRow?.GetCellValue(GroupCol) != "EnumGroup"
+                || nameRow.GetCellValue(EnumCol) != "Enum"
             )
             {
-                throw new ParserException(_tableName, "Invalid column name");
+                throw new ParserException(tableName, "Invalid column name");
             }
 
             var diffChecker = new HashSet<string>();
-            for (var i = 1; i <= _sheet.LastRowNum; i++)
+            for (var i = NameRow + 1; i <= sheet.LastRowNum; i++)
             {
-                var poiRow = _sheet.GetRow(i);
-                if (poiRow == null)
+                var poiRow = sheet.GetRow(i);
+                if (poiRow is null)
                 {
                     break;
                 }
 
                 var row = new Row(poiRow.GetCellValue(GroupCol), poiRow.GetCellValue(EnumCol));
 
-                if (row.Group?.Length == 0)
+                if (row.group?.Length == 0)
                 {
                     break;
                 }
 
-                if (char.IsDigit(row.Group, 0))
+                if (char.IsDigit(row.group, 0))
                 {
                     throw new ParserException(
-                        _tableName,
-                        $"Enum group '{row.Group}' starts with a number"
+                        tableName,
+                        $"Enum group '{row.group}' starts with a number"
                     );
                 }
 
-                if (row.Enum?.Length == 0)
+                if (row.enumName?.Length == 0)
                 {
                     throw new ParserException(
-                        _tableName,
-                        $"Enum value in group '{row.Group}' is empty"
+                        tableName,
+                        $"Enum value in group '{row.group}' is empty"
                     );
                 }
 
-                if (char.IsDigit(row.Enum, 0))
+                if (char.IsDigit(row.enumName, 0))
                 {
                     throw new ParserException(
-                        _tableName,
-                        $"Enum value '{row.Enum}' in group '{row.Group}' starts with a number"
+                        tableName,
+                        $"Enum value '{row.enumName}' in group '{row.group}' starts with a number"
                     );
                 }
 
-                if (!diffChecker.Add(row.Group + row.Enum))
+                if (!diffChecker.Add(row.group + row.enumName))
                 {
                     throw new ParserException(
-                        _tableName,
-                        $"Duplicate enum value '{row.Enum}' in group '{row.Group}'"
+                        tableName,
+                        $"Duplicate enum value '{row.enumName}' in group '{row.group}'"
                     );
                 }
 
@@ -110,26 +110,26 @@ namespace ExcelDatabase.Editor.Parser
 
         private string BuildScript(IEnumerable<Row> rows)
         {
-            var tableTemplate = File.ReadAllText(TablePath);
-            var rowTemplate = File.ReadAllText(RowPath);
-            var builder = new StringBuilder(tableTemplate).Replace(TableVariable, _tableName);
+            var tableTemplate = File.ReadAllText(tablePath);
+            var rowTemplate = File.ReadAllText(rowPath);
+            var builder = new StringBuilder(tableTemplate).Replace(TableVariable, tableName);
             string prevGroupValue = null;
 
             foreach (var row in rows)
             {
-                if (prevGroupValue != row.Group)
+                if (prevGroupValue != row.group)
                 {
-                    prevGroupValue = row.Group;
+                    prevGroupValue = row.group;
                     builder.Replace(RowTemplate, string.Empty);
-                    var groupTemplate = File.ReadAllText(GroupPath);
+                    var groupTemplate = File.ReadAllText(groupPath);
                     builder
                         .Replace(GroupTemplate, groupTemplate + GroupTemplate)
-                        .Replace(GroupVariable, row.Group);
+                        .Replace(GroupVariable, row.group);
                 }
 
                 builder
                     .Replace(RowTemplate, rowTemplate + RowTemplate)
-                    .Replace(RowVariable, row.Enum);
+                    .Replace(RowVariable, row.enumName);
             }
 
             builder.Replace(RowTemplate, string.Empty);
@@ -139,13 +139,13 @@ namespace ExcelDatabase.Editor.Parser
 
         private readonly struct Row
         {
-            public readonly string Group;
-            public readonly string Enum;
+            public string group { get; }
+            public string enumName { get; }
 
-            public Row(string group, string @enum)
+            public Row(string group, string enumName)
             {
-                Group = ParseUtility.Format(group);
-                Enum = ParseUtility.Format(@enum);
+                this.group = ParseUtility.Format(group);
+                this.enumName = ParseUtility.Format(enumName);
             }
         }
     }

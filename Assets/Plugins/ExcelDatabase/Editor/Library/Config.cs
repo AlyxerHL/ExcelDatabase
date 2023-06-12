@@ -5,26 +5,30 @@ namespace ExcelDatabase.Editor.Library
 {
     public static class Config
     {
-        private static string _root;
-
-        private static string Root
+        private static string root_;
+        public static string root
         {
             get
             {
-                if (_root != null)
+                if (root_ is not null)
                 {
-                    return _root;
+                    return root_;
                 }
 
                 var assets = AssetDatabase.FindAssets("ExcelDatabaseRoot");
                 var rootFilePath = AssetDatabase.GUIDToAssetPath(assets[0]);
-                _root = Path.GetDirectoryName(rootFilePath);
-                return _root;
+                root_ = Path.GetDirectoryName(rootFilePath);
+                return root_;
             }
         }
 
-        public static readonly string DistPath = $"{Root}/Dist";
-        public static readonly string TemplatePath = $"{Root}/Editor/Templates";
-        public const string ExcludePrefix = "#";
+        public static string templatePath { get; } = $"{root}/Editor/Templates";
+        public static string excludePrefix { get; } = "#";
+
+        public static string DistPath(string tableName, TableType tableType) =>
+            $"{root}/Dist/{tableType}/{tableName}.cs";
+
+        public static string JsonPath(string tableName) =>
+            $"Assets/Resources/ExcelDatabase/{tableName}.json";
     }
 }

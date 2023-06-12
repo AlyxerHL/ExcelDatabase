@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
-using ExcelDatabase.Editor.Library;
 using NPOI.SS.UserModel;
 
 namespace ExcelDatabase.Editor.Parser
 {
     public static class ParseUtility
     {
-        public static readonly Dictionary<string, Func<string, bool>> TypeValidators =
+        public static Dictionary<string, Func<string, bool>> typeValidators { get; } =
             new()
             {
                 { "string", (_) => true },
@@ -34,19 +32,6 @@ namespace ExcelDatabase.Editor.Parser
         public static string Format(string value)
         {
             return Regex.Replace(value, "[^a-zA-Z0-9.#]+", string.Empty);
-        }
-
-        public static string WriteScript(TableType type, string tableName, string script)
-        {
-            var distDirectory = $"{Config.DistPath}/{type}";
-            if (!Directory.Exists(distDirectory))
-            {
-                Directory.CreateDirectory(distDirectory);
-            }
-
-            var distPath = $"{distDirectory}/{tableName}.cs";
-            File.WriteAllText(distPath, script);
-            return distPath;
         }
     }
 }

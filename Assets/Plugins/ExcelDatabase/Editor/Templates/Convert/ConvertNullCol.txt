@@ -1,0 +1,4 @@
+
+            [JsonProperty]
+            private string? _$NAME$;
+            public $TYPE$Type? $NAME$ => _$NAME$ is null ? null : $TYPE$[_$NAME$];
