@@ -72,7 +72,7 @@ namespace ExcelDatabase.Editor.Parser
             for (var i = TypeRow + 1; i <= sheet.LastRowNum; i++)
             {
                 var id = sheet.GetRow(i)?.GetCellValue(IDCol);
-                if (id?.Length == 0)
+                if (id is null || id.Length == 0)
                 {
                     break;
                 }
@@ -219,30 +219,19 @@ namespace ExcelDatabase.Editor.Parser
             {
                 var isNullable = col.cells.Any((cell) => cell.Value is null);
 
-                if (col.typeSpec == Col.TypeSpec.Convert)
-                {
-                    builder.Replace(
-                        ColTemplate,
-                        (
-                            col.isArray
-                                ? (isNullable ? convertNullArrCol.Value : convertArrCol.Value)
-                                : (isNullable ? convertNullCol.Value : convertCol.Value)
-                        ) + ColTemplate
-                    );
-                }
-                else
-                {
-                    builder.Replace(
-                        ColTemplate,
-                        (
-                            col.isArray
-                                ? (isNullable ? generalNullArrCol.Value : generalArrCol.Value)
-                                : (isNullable ? generalNullCol.Value : generalCol.Value)
-                        ) + ColTemplate
-                    );
-                }
-
                 builder
+                    .Replace(
+                        ColTemplate,
+                        (
+                            col.typeSpec == Col.TypeSpec.Convert
+                                ? col.isArray
+                                    ? (isNullable ? convertNullArrCol.Value : convertArrCol.Value)
+                                    : (isNullable ? convertNullCol.Value : convertCol.Value)
+                                : col.isArray
+                                    ? (isNullable ? generalNullArrCol.Value : generalArrCol.Value)
+                                    : (isNullable ? generalNullCol.Value : generalCol.Value)
+                        ) + ColTemplate
+                    )
                     .Replace(
                         TypeVariable,
                         col.typeSpec == Col.TypeSpec.Variable ? "string" : col.type
