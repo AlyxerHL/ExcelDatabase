@@ -223,13 +223,16 @@ namespace ExcelDatabase.Editor.Parser
                     .Replace(
                         ColTemplate,
                         (
-                            col.typeSpec == Col.TypeSpec.Convert
-                                ? col.isArray
-                                    ? (isNullable ? convertNullArrCol.Value : convertArrCol.Value)
-                                    : (isNullable ? convertNullCol.Value : convertCol.Value)
-                                : col.isArray
-                                    ? (isNullable ? generalNullArrCol.Value : generalArrCol.Value)
-                                    : (isNullable ? generalNullCol.Value : generalCol.Value)
+                            col.typeSpec switch
+                            {
+                                Col.TypeSpec.Convert when col.isArray
+                                    => isNullable ? convertNullArrCol.Value : convertArrCol.Value,
+                                Col.TypeSpec.Convert
+                                    => isNullable ? convertNullCol.Value : convertCol.Value,
+                                _ when col.isArray
+                                    => isNullable ? generalNullArrCol.Value : generalArrCol.Value,
+                                _ => isNullable ? generalNullCol.Value : generalCol.Value
+                            }
                         ) + ColTemplate
                     )
                     .Replace(
