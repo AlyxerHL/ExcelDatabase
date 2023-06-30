@@ -12,7 +12,7 @@ using Object = UnityEngine.Object;
 
 namespace ExcelDatabase.Editor.GUI
 {
-    public class Manager : EditorWindow
+    public class TableList : EditorWindow
     {
         private static IEnumerable<ParseResult> selectedResults;
 
@@ -32,11 +32,11 @@ namespace ExcelDatabase.Editor.GUI
 
         private static string resultPath => $"{Config.root}/Dist/ParseResult.json";
 
-        [MenuItem("Tools/Excel Database/Show Manager")]
-        public static void ShowManager()
+        [MenuItem("Tools/Excel Database/Show Table List")]
+        public static void ShowTableList()
         {
-            var window = GetWindow<Manager>();
-            window.titleContent = new("Excel Database | Manager");
+            var window = GetWindow<TableList>();
+            window.titleContent = new("Table List - Excel Database");
         }
 
         [MenuItem("Tools/Excel Database/Parse Convert Tables")]
@@ -67,7 +67,7 @@ namespace ExcelDatabase.Editor.GUI
         private void ApplyUI()
         {
             var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                "Assets/Plugins/ExcelDatabase/Editor/GUI/Manager.uxml"
+                "Assets/Plugins/ExcelDatabase/Editor/GUI/TableList.uxml"
             );
             rootVisualElement.Add(visualTree.Instantiate());
 
