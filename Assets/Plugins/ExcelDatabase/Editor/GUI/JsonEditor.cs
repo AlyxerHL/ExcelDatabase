@@ -21,7 +21,7 @@ namespace ExcelDatabase.Editor.GUI
             var json = AssetDatabase.LoadAssetAtPath<TextAsset>(jsonPath);
             window.table = JsonConvert.DeserializeObject<Dictionary<string, object>[]>(json.text);
             window.jsonPath = jsonPath;
-            window.titleContent = new("Excel Database | Json Editor");
+            window.titleContent = new($"{json.name} - Excel Database");
             window.ListIDs();
         }
 
