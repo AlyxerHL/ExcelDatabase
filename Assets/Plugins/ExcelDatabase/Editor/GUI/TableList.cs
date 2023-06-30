@@ -16,19 +16,8 @@ namespace ExcelDatabase.Editor.GUI
     {
         private static IEnumerable<ParseResult> selectedResults;
 
-        private static SortedSet<ParseResult> resultSet_;
-        private static SortedSet<ParseResult> resultSet
-        {
-            get
-            {
-                resultSet_ ??= File.Exists(resultPath)
-                    ? JsonConvert.DeserializeObject<SortedSet<ParseResult>>(
-                        File.ReadAllText(resultPath)
-                    )
-                    : new();
-                return resultSet_;
-            }
-        }
+        private static readonly Lazy<SortedSet<ParseResult>> lazyResultSet = new(CreateResultSet);
+        private static SortedSet<ParseResult> resultSet => lazyResultSet.Value;
 
         private static string resultPath => $"{Config.root}/Dist/ParseResult.json";
 
@@ -62,6 +51,77 @@ namespace ExcelDatabase.Editor.GUI
             ApplyUI();
             RegisterButtons();
             ListTables();
+        }
+
+        private static SortedSet<ParseResult> CreateResultSet()
+        {
+            return File.Exists(resultPath)
+                ? JsonConvert.DeserializeObject<SortedSet<ParseResult>>(
+                    File.ReadAllText(resultPath)
+                )
+                : new();
+        }
+
+        private static void ParseTables(IEnumerable<Object> files, TableType type)
+        {
+            foreach (var file in files.Where(IsExcelFile))
+            {
+                try
+                {
+                    var result = type switch
+                    {
+                        TableType.Convert => new ConvertParser(file).Parse(),
+                        TableType.Enum => new EnumParser(file).Parse(),
+                        TableType.Variable => new VariableParser(file).Parse(),
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
+
+                    resultSet.Add(result);
+                    SyncResultSet();
+                }
+                catch (ParserException e)
+                {
+                    Debug.LogError($"{e.tableName}: {e.Message}");
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    Debug.LogError($"{file.name}: Please remove and parse again");
+                }
+            }
+
+            AssetDatabase.Refresh();
+            JsonEditor.Refresh();
+            Debug.Log("Excel Database: Parsing has been completed");
+
+            static bool IsExcelFile(Object file)
+            {
+                var path = AssetDatabase.GetAssetPath(file);
+                return Path.GetExtension(path) == ".xlsx"
+                    && !Path.GetFileName(path).StartsWith(Config.excludePrefix);
+            }
+        }
+
+        private static void RemoveTables(IEnumerable<ParseResult> tables)
+        {
+            foreach (var table in tables)
+            {
+                resultSet.Remove(table);
+                AssetDatabase.DeleteAsset(Config.DistPath(table.name, table.type));
+
+                if (table.type == TableType.Convert)
+                {
+                    AssetDatabase.DeleteAsset(Config.JsonPath(table.name));
+                }
+            }
+
+            SyncResultSet();
+            Debug.Log("Excel Database: Removing has been completed");
+        }
+
+        private static void SyncResultSet()
+        {
+            var json = JsonConvert.SerializeObject(resultSet, Formatting.Indented);
+            File.WriteAllText(resultPath, json);
         }
 
         private void ApplyUI()
@@ -153,68 +213,6 @@ namespace ExcelDatabase.Editor.GUI
                 var removeButton = rootVisualElement.Q<Button>("remove-button");
                 removeButton.SetEnabled(selectedResults?.Count() > 0);
             }
-        }
-
-        private static void ParseTables(IEnumerable<Object> files, TableType type)
-        {
-            foreach (var file in files.Where(IsExcelFile))
-            {
-                try
-                {
-                    var result = type switch
-                    {
-                        TableType.Convert => new ConvertParser(file).Parse(),
-                        TableType.Enum => new EnumParser(file).Parse(),
-                        TableType.Variable => new VariableParser(file).Parse(),
-                        _ => throw new ArgumentOutOfRangeException()
-                    };
-
-                    resultSet.Add(result);
-                    SyncResultSet();
-                }
-                catch (ParserException e)
-                {
-                    Debug.LogError($"{e.tableName}: {e.Message}");
-                }
-                catch (ArgumentOutOfRangeException)
-                {
-                    Debug.LogError($"{file.name}: Please remove and parse again");
-                }
-            }
-
-            AssetDatabase.Refresh();
-            JsonEditor.Refresh();
-            Debug.Log("Excel Database: Parsing has been completed");
-
-            static bool IsExcelFile(Object file)
-            {
-                var path = AssetDatabase.GetAssetPath(file);
-                return Path.GetExtension(path) == ".xlsx"
-                    && !Path.GetFileName(path).StartsWith(Config.excludePrefix);
-            }
-        }
-
-        private static void RemoveTables(IEnumerable<ParseResult> tables)
-        {
-            foreach (var table in tables)
-            {
-                resultSet.Remove(table);
-                AssetDatabase.DeleteAsset(Config.DistPath(table.name, table.type));
-
-                if (table.type == TableType.Convert)
-                {
-                    AssetDatabase.DeleteAsset(Config.JsonPath(table.name));
-                }
-            }
-
-            SyncResultSet();
-            Debug.Log("Excel Database: Removing has been completed");
-        }
-
-        private static void SyncResultSet()
-        {
-            var json = JsonConvert.SerializeObject(resultSet, Formatting.Indented);
-            File.WriteAllText(resultPath, json);
         }
     }
 }
