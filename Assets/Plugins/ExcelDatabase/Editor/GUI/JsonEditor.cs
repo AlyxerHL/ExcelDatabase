@@ -12,17 +12,16 @@ namespace ExcelDatabase.Editor.GUI
     public class JsonEditor : EditorWindow
     {
         private string jsonPath;
+        private int selectedIndex;
         private Dictionary<string, object>[] table;
-        private Dictionary<string, object> columns;
 
-        public static void Open(string jsonPath)
+        public static void Open(string jsonPath, string name)
         {
             var window = GetWindow<JsonEditor>();
-            var json = AssetDatabase.LoadAssetAtPath<TextAsset>(jsonPath);
-            window.table = JsonConvert.DeserializeObject<Dictionary<string, object>[]>(json.text);
+            window.titleContent = new($"{name} - Excel Database");
             window.jsonPath = jsonPath;
-            window.titleContent = new($"{json.name} - Excel Database");
-            window.ListIDs();
+            window.selectedIndex = 0;
+            Refresh();
         }
 
         public static void Refresh()
@@ -35,9 +34,6 @@ namespace ExcelDatabase.Editor.GUI
             var window = GetWindow<JsonEditor>();
             var json = AssetDatabase.LoadAssetAtPath<TextAsset>(window.jsonPath);
             window.table = JsonConvert.DeserializeObject<Dictionary<string, object>[]>(json.text);
-            window.columns = window.table.First(
-                column => column["ID"] as string == window.columns["ID"] as string
-            );
 
             window.ListIDs();
             window.ListColumns();
@@ -71,13 +67,14 @@ namespace ExcelDatabase.Editor.GUI
         private void ListIDs()
         {
             var idList = rootVisualElement.Q<ListView>("id-list");
-            // 스크롤 시 KeyNotFoundException 방지
-            idList.bindItem = null;
+            idList.selectionChanged += HandleSelectionChanged;
+            idList.SetSelection(selectedIndex);
 
+            // Prevent KeyNotFoundException when scroll
+            idList.bindItem = null;
             idList.itemsSource = table;
             idList.makeItem = MakeItem;
             idList.bindItem = BindItem;
-            idList.selectionChanged += HandleSelectionChanged;
 
             VisualElement MakeItem()
             {
@@ -94,21 +91,21 @@ namespace ExcelDatabase.Editor.GUI
                 }
             }
 
-            void HandleSelectionChanged(IEnumerable<object> selection)
+            void HandleSelectionChanged(IEnumerable<object> _)
             {
-                columns = selection.First() as Dictionary<string, object>;
+                selectedIndex = idList.selectedIndex;
                 ListColumns();
             }
         }
 
         private void ListColumns()
         {
-            var columnsWithoutID = columns.Skip(1);
+            var columns = table[selectedIndex];
             var columnList = rootVisualElement.Q<ListView>("column-list");
-            // 스크롤 시 KeyNotFoundException 방지
-            columnList.bindItem = null;
 
-            columnList.itemsSource = columnsWithoutID.ToList();
+            // Prevent KeyNotFoundException when scroll
+            columnList.bindItem = null;
+            columnList.itemsSource = columns.Skip(1).ToList();
             columnList.makeItem = MakeItem;
             columnList.bindItem = BindItem;
 
@@ -143,7 +140,7 @@ namespace ExcelDatabase.Editor.GUI
             {
                 if (element is TextField field)
                 {
-                    var column = columnsWithoutID.ElementAt(i);
+                    var column = columns.Skip(1).ElementAt(i);
                     field.label = column.Key;
                     field.value = column.Value is JArray array
                         ? string.Join('\n', array)

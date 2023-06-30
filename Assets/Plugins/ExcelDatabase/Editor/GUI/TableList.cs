@@ -153,7 +153,8 @@ namespace ExcelDatabase.Editor.GUI
 
             void HandleEdit(ClickEvent _)
             {
-                JsonEditor.Open(Config.JsonPath(selectedResults.First().name));
+                var resultName = selectedResults.First().name;
+                JsonEditor.Open(Config.JsonPath(resultName), resultName);
             }
 
             void HandleParse(ClickEvent _)
