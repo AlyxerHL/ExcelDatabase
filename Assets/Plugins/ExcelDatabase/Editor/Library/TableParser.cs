@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 using UnityEditor;
 
 namespace ExcelDatabase.Editor.Library
@@ -52,7 +53,15 @@ namespace ExcelDatabase.Editor.Library
 
         public static Result ParseConvert(UnityEngine.Object file)
         {
-            return new Result();
+            var (table, excelPath) = OpenTableFile(file);
+            var ids = Convert.Validator.ValidateIDs(table);
+            var cols = Convert.Validator.ValidateCols(table, ids);
+            var script = Convert.Builder.BuildScript(table, cols);
+            var json = Convert.Builder.BuildJson(cols);
+
+            File.WriteAllText(DistPath(table.name, TableType.Convert), script);
+            File.WriteAllText(JsonPath(table.name), json);
+            return new Result(TableType.Convert, table.name, excelPath);
         }
 
         public static Result ParseEnum(UnityEngine.Object file)
@@ -63,6 +72,18 @@ namespace ExcelDatabase.Editor.Library
         public static Result ParseVariable(UnityEngine.Object file)
         {
             return new Result();
+        }
+
+        private static (Table table, string excelPath) OpenTableFile(UnityEngine.Object file)
+        {
+            var path = AssetDatabase.GetAssetPath(file);
+            using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
+            var sheet = new XSSFWorkbook(stream).GetSheetAt(0);
+            var tableName = Format(file.name);
+
+            var table = new Table(sheet, tableName);
+            var excelPath = AssetDatabase.GetAssetPath(file);
+            return (table, excelPath);
         }
 
         private static string CreateRoot()
@@ -80,6 +101,18 @@ namespace ExcelDatabase.Editor.Library
                 : base(message)
             {
                 this.tableName = tableName;
+            }
+        }
+
+        public readonly struct Table
+        {
+            public ISheet sheet { get; }
+            public string name { get; }
+
+            public Table(ISheet sheet, string name)
+            {
+                this.sheet = sheet;
+                this.name = name;
             }
         }
 
