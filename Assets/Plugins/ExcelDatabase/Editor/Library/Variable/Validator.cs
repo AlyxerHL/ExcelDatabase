@@ -6,18 +6,18 @@ namespace ExcelDatabase.Editor.Library.Variable
     {
         public static IEnumerable<Row> ValidateRows(TableParser.Table table)
         {
-            var nameRow = table.sheet.GetRow(Config.NameRow);
+            var nameRow = table.sheet.GetRow(Config.nameRow);
             if (
-                nameRow?.GetCellValue(Config.NameCol) != "VariableName"
-                || nameRow.GetCellValue(Config.TypeCol) != "DataType"
-                || nameRow.GetCellValue(Config.ValueCol) != "Value"
+                nameRow?.GetCellValue(Config.nameCol) != "VariableName"
+                || nameRow.GetCellValue(Config.typeCol) != "DataType"
+                || nameRow.GetCellValue(Config.valueCol) != "Value"
             )
             {
                 throw new TableParser.Exception(table.name, "Invalid column name");
             }
 
             var diffChecker = new HashSet<string>();
-            for (var i = Config.NameRow + 1; i <= table.sheet.LastRowNum; i++)
+            for (var i = Config.nameRow + 1; i <= table.sheet.LastRowNum; i++)
             {
                 var poiRow = table.sheet.GetRow(i);
                 if (poiRow is null)
@@ -26,9 +26,9 @@ namespace ExcelDatabase.Editor.Library.Variable
                 }
 
                 var row = new Row(
-                    poiRow.GetCellValue(Config.NameCol),
-                    poiRow.GetCellValue(Config.TypeCol),
-                    poiRow.GetCellValue(Config.ValueCol)
+                    poiRow.GetCellValue(Config.nameCol),
+                    poiRow.GetCellValue(Config.typeCol),
+                    poiRow.GetCellValue(Config.valueCol)
                 );
 
                 if (row.name?.Length == 0)

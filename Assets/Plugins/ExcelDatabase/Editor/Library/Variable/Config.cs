@@ -5,16 +5,16 @@ namespace ExcelDatabase.Editor.Library.Variable
 {
     public static class Config
     {
-        public static int NameCol { get; } = 0;
-        public static int TypeCol { get; } = 1;
-        public static int ValueCol { get; } = 2;
-        public static int NameRow { get; } = 0;
+        public static int nameCol { get; } = 0;
+        public static int typeCol { get; } = 1;
+        public static int valueCol { get; } = 2;
+        public static int nameRow { get; } = 0;
 
-        public static string RowTemplate { get; } = "#ROW#";
-        public static string TableVariable { get; } = "$TABLE$";
-        public static string TypeVariable { get; } = "$TYPE$";
-        public static string NameVariable { get; } = "$NAME$";
-        public static string ValueVariable { get; } = "$VALUE$";
+        public static string rowTemplate { get; } = "#ROW#";
+        public static string tableVariable { get; } = "$TABLE$";
+        public static string typeVariable { get; } = "$TYPE$";
+        public static string nameVariable { get; } = "$NAME$";
+        public static string valueVariable { get; } = "$VALUE$";
 
         public static string table => lazyTable.Value;
         public static string row => lazyRow.Value;

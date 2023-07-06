@@ -7,16 +7,16 @@ namespace ExcelDatabase.Editor.Library.Variable
     {
         public static string BuildScript(TableParser.Table table, IEnumerable<Validator.Row> rows)
         {
-            var builder = new StringBuilder(Config.table).Replace(Config.TableVariable, table.name);
+            var builder = new StringBuilder(Config.table).Replace(Config.tableVariable, table.name);
 
             foreach (var row in rows)
             {
                 builder
-                    .Replace(Config.RowTemplate, Config.row + Config.RowTemplate)
-                    .Replace(Config.TypeVariable, row.type)
-                    .Replace(Config.NameVariable, row.name)
+                    .Replace(Config.rowTemplate, Config.row + Config.rowTemplate)
+                    .Replace(Config.typeVariable, row.type)
+                    .Replace(Config.nameVariable, row.name)
                     .Replace(
-                        Config.ValueVariable,
+                        Config.valueVariable,
                         row.type switch
                         {
                             "float" => row.value + 'f',
@@ -26,7 +26,7 @@ namespace ExcelDatabase.Editor.Library.Variable
                     );
             }
 
-            builder.Replace(Config.RowTemplate, string.Empty);
+            builder.Replace(Config.rowTemplate, string.Empty);
             return builder.ToString();
         }
     }
