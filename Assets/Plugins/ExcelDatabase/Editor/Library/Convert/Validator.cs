@@ -136,7 +136,9 @@ namespace ExcelDatabase.Editor.Library.Convert
 
                         if (
                             type is null
-                            || cellValues.Any((cellValue) => !Enum.IsDefined(type, cellValue))
+                            || cellValues.Any(
+                                (cellValue) => !System.Enum.IsDefined(type, cellValue)
+                            )
                         )
                         {
                             throw new TableParser.Exception(

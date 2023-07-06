@@ -66,7 +66,11 @@ namespace ExcelDatabase.Editor.Library
 
         public static Result ParseEnum(UnityEngine.Object file)
         {
-            return new Result();
+            var (table, excelPath) = OpenTableFile(file);
+            var rows = Enum.Validator.ValidateRows(table);
+            var script = Enum.Builder.BuildScript(table, rows);
+            File.WriteAllText(DistPath(table.name, TableType.Enum), script);
+            return new Result(TableType.Enum, table.name, excelPath);
         }
 
         public static Result ParseVariable(UnityEngine.Object file)
