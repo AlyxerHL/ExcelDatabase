@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 using NPOI.SS.UserModel;
+using UnityEditor;
 
 namespace ExcelDatabase.Editor.Library
 {
@@ -15,6 +17,20 @@ namespace ExcelDatabase.Editor.Library
                 { "float", (value) => float.TryParse(value, out _) },
                 { "bool", (value) => bool.TryParse(value, out _) }
             };
+
+        public static string root => lazyRoot.Value;
+        public static string excludePrefix { get; } = "#";
+        private static readonly Lazy<string> lazyRoot = new(CreateRoot);
+
+        public static string DistPath(string tableName, TableType tableType)
+        {
+            return $"{root}/Dist/{tableType}/{tableName}.cs";
+        }
+
+        public static string JsonPath(string tableName)
+        {
+            return $"Assets/Resources/ExcelDatabase/{tableName}.json";
+        }
 
         public static string GetCellValue(this IRow row, int index)
         {
@@ -47,6 +63,13 @@ namespace ExcelDatabase.Editor.Library
         public static Result ParseVariable(UnityEngine.Object file)
         {
             return new Result();
+        }
+
+        private static string CreateRoot()
+        {
+            var assets = AssetDatabase.FindAssets("ExcelDatabaseRoot");
+            var rootFilePath = AssetDatabase.GUIDToAssetPath(assets[0]);
+            return Path.GetDirectoryName(rootFilePath);
         }
 
         public class Exception : System.Exception

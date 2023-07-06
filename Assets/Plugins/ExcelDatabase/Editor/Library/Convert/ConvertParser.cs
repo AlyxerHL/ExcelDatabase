@@ -25,23 +25,23 @@ namespace ExcelDatabase.Editor.Parser.Convert
         private const string NameVariable = "$NAME$";
 
         private static readonly Lazy<string> tableTemplate =
-            new(() => File.ReadAllText($"{Config.templatePath}/Convert/Table.txt"));
+            new(() => File.ReadAllText("{TableParser.templatePath}/Convert/Table.txt"));
         private static readonly Lazy<string> generalCol =
-            new(() => File.ReadAllText($"{Config.templatePath}/Convert/GeneralCol.txt"));
+            new(() => File.ReadAllText("{TableParser.templatePath}/Convert/GeneralCol.txt"));
         private static readonly Lazy<string> generalNullCol =
-            new(() => File.ReadAllText($"{Config.templatePath}/Convert/GeneralNullCol.txt"));
+            new(() => File.ReadAllText("{TableParser.templatePath}/Convert/GeneralNullCol.txt"));
         private static readonly Lazy<string> convertCol =
-            new(() => File.ReadAllText($"{Config.templatePath}/Convert/ConvertCol.txt"));
+            new(() => File.ReadAllText("{TableParser.templatePath}/Convert/ConvertCol.txt"));
         private static readonly Lazy<string> convertNullCol =
-            new(() => File.ReadAllText($"{Config.templatePath}/Convert/ConvertNullCol.txt"));
+            new(() => File.ReadAllText("{TableParser.templatePath}/Convert/ConvertNullCol.txt"));
         private static readonly Lazy<string> generalArrCol =
-            new(() => File.ReadAllText($"{Config.templatePath}/Convert/GeneralArrCol.txt"));
+            new(() => File.ReadAllText("{TableParser.templatePath}/Convert/GeneralArrCol.txt"));
         private static readonly Lazy<string> generalNullArrCol =
-            new(() => File.ReadAllText($"{Config.templatePath}/Convert/GeneralNullArrCol.txt"));
+            new(() => File.ReadAllText("{TableParser.templatePath}/Convert/GeneralNullArrCol.txt"));
         private static readonly Lazy<string> convertArrCol =
-            new(() => File.ReadAllText($"{Config.templatePath}/Convert/ConvertArrCol.txt"));
+            new(() => File.ReadAllText("{TableParser.templatePath}/Convert/ConvertArrCol.txt"));
         private static readonly Lazy<string> convertNullArrCol =
-            new(() => File.ReadAllText($"{Config.templatePath}/Convert/ConvertNullArrCol.txt"));
+            new(() => File.ReadAllText("{TableParser.templatePath}/Convert/ConvertNullArrCol.txt"));
 
         private readonly ISheet sheet;
         private readonly string tableName;
@@ -60,8 +60,11 @@ namespace ExcelDatabase.Editor.Parser.Convert
         {
             var ids = ValidateIDs();
             var cols = ValidateCols(ids);
-            File.WriteAllText(Config.DistPath(tableName, TableType.Convert), BuildScript(cols));
-            File.WriteAllText(Config.JsonPath(tableName), BuildJson(cols));
+            File.WriteAllText(
+                TableParser.DistPath(tableName, TableType.Convert),
+                BuildScript(cols)
+            );
+            File.WriteAllText(TableParser.JsonPath(tableName), BuildJson(cols));
 
             return new Library.TableParser.Result(TableType.Convert, tableName, excelPath);
         }
@@ -99,7 +102,7 @@ namespace ExcelDatabase.Editor.Parser.Convert
             for (var colIndex = IDCol; colIndex <= nameRow.LastCellNum; colIndex++)
             {
                 var col = new Col(nameRow.GetCellValue(colIndex), typeRow.GetCellValue(colIndex));
-                if (col.name.StartsWith(Config.excludePrefix))
+                if (col.name.StartsWith(TableParser.excludePrefix))
                 {
                     continue;
                 }
@@ -144,7 +147,7 @@ namespace ExcelDatabase.Editor.Parser.Convert
                     rowIndex++;
                     var cell = sheet.GetRow(rowIndex).GetCellValue(colIndex);
 
-                    if (cell.StartsWith(Config.excludePrefix))
+                    if (cell.StartsWith(TableParser.excludePrefix))
                     {
                         col.cells[id] = null;
                         continue;

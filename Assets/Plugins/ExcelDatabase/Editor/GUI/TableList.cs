@@ -19,7 +19,7 @@ namespace ExcelDatabase.Editor.GUI
             new(CreateResultSet);
         private static SortedSet<TableParser.Result> resultSet => lazyResultSet.Value;
 
-        private static string resultPath => $"{Config.root}/Dist/ParseResult.json";
+        private static string resultPath => $"{TableParser.root}/Dist/ParseResult.json";
 
         [MenuItem("Tools/Excel Database/Show Table List")]
         public static void ShowTableList()
@@ -97,7 +97,7 @@ namespace ExcelDatabase.Editor.GUI
             {
                 var path = AssetDatabase.GetAssetPath(file);
                 return Path.GetExtension(path) == ".xlsx"
-                    && !Path.GetFileName(path).StartsWith(Config.excludePrefix);
+                    && !Path.GetFileName(path).StartsWith(TableParser.excludePrefix);
             }
         }
 
@@ -106,11 +106,11 @@ namespace ExcelDatabase.Editor.GUI
             foreach (var table in tables)
             {
                 resultSet.Remove(table);
-                AssetDatabase.DeleteAsset(Config.DistPath(table.name, table.type));
+                AssetDatabase.DeleteAsset(TableParser.DistPath(table.name, table.type));
 
                 if (table.type == TableType.Convert)
                 {
-                    AssetDatabase.DeleteAsset(Config.JsonPath(table.name));
+                    AssetDatabase.DeleteAsset(TableParser.JsonPath(table.name));
                 }
             }
 
@@ -154,7 +154,7 @@ namespace ExcelDatabase.Editor.GUI
             void HandleEdit(ClickEvent _)
             {
                 var resultName = selectedResults.First().name;
-                JsonEditor.Open(Config.JsonPath(resultName), resultName);
+                JsonEditor.Open(TableParser.JsonPath(resultName), resultName);
             }
 
             void HandleParse(ClickEvent _)
