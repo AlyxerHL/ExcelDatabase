@@ -54,7 +54,7 @@ namespace ExcelDatabase.Editor.Parser
                 || nameRow.GetCellValue(ValueCol) != "Value"
             )
             {
-                throw new ParserException(tableName, "Invalid column name");
+                throw new ParseException(tableName, "Invalid column name");
             }
 
             var diffChecker = new HashSet<string>();
@@ -79,7 +79,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (char.IsDigit(row.name, 0))
                 {
-                    throw new ParserException(
+                    throw new ParseException(
                         tableName,
                         $"Variable name '{row.name}' starts with a number"
                     );
@@ -87,17 +87,17 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (!diffChecker.Add(row.name))
                 {
-                    throw new ParserException(tableName, $"Duplicate variable name '{row.name}'");
+                    throw new ParseException(tableName, $"Duplicate variable name '{row.name}'");
                 }
 
                 if (!ParseUtility.typeValidators.ContainsKey(row.type))
                 {
-                    throw new ParserException(tableName, $"Invalid variable type '{row.type}'");
+                    throw new ParseException(tableName, $"Invalid variable type '{row.type}'");
                 }
 
                 if (!ParseUtility.typeValidators[row.type](row.value))
                 {
-                    throw new ParserException(
+                    throw new ParseException(
                         tableName,
                         $"Variable value '{row.value}' is not of variable type '{row.type}'"
                     );

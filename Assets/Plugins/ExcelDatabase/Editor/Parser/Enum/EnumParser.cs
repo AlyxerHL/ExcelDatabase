@@ -53,7 +53,7 @@ namespace ExcelDatabase.Editor.Parser
                 || nameRow.GetCellValue(EnumCol) != "Enum"
             )
             {
-                throw new ParserException(tableName, "Invalid column name");
+                throw new ParseException(tableName, "Invalid column name");
             }
 
             var diffChecker = new HashSet<string>();
@@ -74,7 +74,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (char.IsDigit(row.group, 0))
                 {
-                    throw new ParserException(
+                    throw new ParseException(
                         tableName,
                         $"Enum group '{row.group}' starts with a number"
                     );
@@ -82,7 +82,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (row.enumName?.Length == 0)
                 {
-                    throw new ParserException(
+                    throw new ParseException(
                         tableName,
                         $"Enum value in group '{row.group}' is empty"
                     );
@@ -90,7 +90,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (char.IsDigit(row.enumName, 0))
                 {
-                    throw new ParserException(
+                    throw new ParseException(
                         tableName,
                         $"Enum value '{row.enumName}' in group '{row.group}' starts with a number"
                     );
@@ -98,7 +98,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (!diffChecker.Add(row.group + row.enumName))
                 {
-                    throw new ParserException(
+                    throw new ParseException(
                         tableName,
                         $"Duplicate enum value '{row.enumName}' in group '{row.group}'"
                     );

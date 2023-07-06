@@ -79,7 +79,7 @@ namespace ExcelDatabase.Editor.GUI
                     resultSet.Add(result);
                     SyncResultSet();
                 }
-                catch (ParserException e)
+                catch (ParseException e)
                 {
                     Debug.LogError($"{e.tableName}: {e.Message}");
                 }

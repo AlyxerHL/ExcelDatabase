@@ -79,7 +79,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (!diffChecker.Add(id))
                 {
-                    throw new ParserException(tableName, $"Duplicate ID '{id}'");
+                    throw new ParseException(tableName, $"Duplicate ID '{id}'");
                 }
 
                 yield return id;
@@ -92,7 +92,7 @@ namespace ExcelDatabase.Editor.Parser
             var typeRow = sheet.GetRow(TypeRow);
             if (nameRow?.GetCellValue(IDCol) != "ID" || typeRow?.GetCellValue(IDCol) != "string")
             {
-                throw new ParserException(tableName, "Invalid ID column");
+                throw new ParseException(tableName, "Invalid ID column");
             }
 
             var diffChecker = new HashSet<string>();
@@ -111,7 +111,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (char.IsDigit(col.name, 0))
                 {
-                    throw new ParserException(
+                    throw new ParseException(
                         tableName,
                         $"Column name '{col.name}' starts with a number"
                     );
@@ -119,7 +119,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (!diffChecker.Add(col.name))
                 {
-                    throw new ParserException(tableName, $"Duplicate column name '{col.name}'");
+                    throw new ParseException(tableName, $"Duplicate column name '{col.name}'");
                 }
 
                 switch (col.typeSpec)
@@ -129,7 +129,7 @@ namespace ExcelDatabase.Editor.Parser
                         when !ParseUtility.typeValidators.ContainsKey(col.type):
                     case Col.TypeSpec.Convert when !TypeExists(col.type + "Type"):
                     case Col.TypeSpec.Enum when !TypeExists(col.type):
-                        throw new ParserException(
+                        throw new ParseException(
                             tableName,
                             $"Type '{col.type}' of column '{col.name}' is invalid"
                         );
@@ -149,7 +149,7 @@ namespace ExcelDatabase.Editor.Parser
 
                     if (cell.Length == 0)
                     {
-                        throw new ParserException(
+                        throw new ParseException(
                             tableName,
                             $"An empty cell exists in column '{col.name}' of '{id}'"
                         );
@@ -158,7 +158,7 @@ namespace ExcelDatabase.Editor.Parser
                     var cellValues = cell.Split(ArraySeparator);
                     if (!col.isArray && cellValues.Length > 1)
                     {
-                        throw new ParserException(
+                        throw new ParseException(
                             tableName,
                             $"The cell in column '{col.name}' of '{id}' is array, "
                                 + "but its type is not an array"
@@ -172,7 +172,7 @@ namespace ExcelDatabase.Editor.Parser
                         )
                     )
                     {
-                        throw new ParserException(
+                        throw new ParseException(
                             tableName,
                             $"The cell in column '{col.name}' of '{id}' type mismatch"
                         );
@@ -189,7 +189,7 @@ namespace ExcelDatabase.Editor.Parser
                             || cellValues.Any((cellValue) => !Enum.IsDefined(type, cellValue))
                         )
                         {
-                            throw new ParserException(
+                            throw new ParseException(
                                 tableName,
                                 $"The cell in column '{col.name}' of '{id}' type mismatch"
                             );
