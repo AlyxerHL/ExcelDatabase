@@ -75,7 +75,11 @@ namespace ExcelDatabase.Editor.Library
 
         public static Result ParseVariable(UnityEngine.Object file)
         {
-            return new Result();
+            var (table, excelPath) = OpenTableFile(file);
+            var rows = Variable.Validator.ValidateRows(table);
+            var script = Variable.Builder.BuildScript(table, rows);
+            File.WriteAllText(DistPath(table.name, TableType.Variable), script);
+            return new Result(TableType.Variable, table.name, excelPath);
         }
 
         private static (Table table, string excelPath) OpenTableFile(UnityEngine.Object file)
