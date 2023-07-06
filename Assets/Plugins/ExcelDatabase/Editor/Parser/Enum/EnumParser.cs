@@ -34,15 +34,15 @@ namespace ExcelDatabase.Editor.Parser
             var path = AssetDatabase.GetAssetPath(file);
             using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
             sheet = new XSSFWorkbook(stream).GetSheetAt(0);
-            tableName = ParseUtility.Format(file.name);
+            tableName = TableParser.Format(file.name);
             excelPath = AssetDatabase.GetAssetPath(file);
         }
 
-        public ParseResult Parse()
+        public Library.TableParser.Result Parse()
         {
             var rows = ValidateRows();
             File.WriteAllText(Config.DistPath(tableName, TableType.Enum), BuildScript(rows));
-            return new ParseResult(TableType.Enum, tableName, excelPath);
+            return new Library.TableParser.Result(TableType.Enum, tableName, excelPath);
         }
 
         private IEnumerable<Row> ValidateRows()
@@ -53,7 +53,7 @@ namespace ExcelDatabase.Editor.Parser
                 || nameRow.GetCellValue(EnumCol) != "Enum"
             )
             {
-                throw new ParseException(tableName, "Invalid column name");
+                throw new Library.TableParser.Exception(tableName, "Invalid column name");
             }
 
             var diffChecker = new HashSet<string>();
@@ -74,7 +74,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (char.IsDigit(row.group, 0))
                 {
-                    throw new ParseException(
+                    throw new Library.TableParser.Exception(
                         tableName,
                         $"Enum group '{row.group}' starts with a number"
                     );
@@ -82,7 +82,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (row.enumName?.Length == 0)
                 {
-                    throw new ParseException(
+                    throw new Library.TableParser.Exception(
                         tableName,
                         $"Enum value in group '{row.group}' is empty"
                     );
@@ -90,7 +90,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (char.IsDigit(row.enumName, 0))
                 {
-                    throw new ParseException(
+                    throw new Library.TableParser.Exception(
                         tableName,
                         $"Enum value '{row.enumName}' in group '{row.group}' starts with a number"
                     );
@@ -98,7 +98,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (!diffChecker.Add(row.group + row.enumName))
                 {
-                    throw new ParseException(
+                    throw new Library.TableParser.Exception(
                         tableName,
                         $"Duplicate enum value '{row.enumName}' in group '{row.group}'"
                     );
@@ -144,8 +144,8 @@ namespace ExcelDatabase.Editor.Parser
 
             public Row(string group, string enumName)
             {
-                this.group = ParseUtility.Format(group);
-                this.enumName = ParseUtility.Format(enumName);
+                this.group = TableParser.Format(group);
+                this.enumName = TableParser.Format(enumName);
             }
         }
     }

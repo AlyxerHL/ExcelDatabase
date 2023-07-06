@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using ExcelDatabase.Editor.Parser;
 using ExcelDatabase.Editor.Library;
 using Newtonsoft.Json;
 using UnityEditor;
@@ -14,10 +13,11 @@ namespace ExcelDatabase.Editor.GUI
 {
     public class TableList : EditorWindow
     {
-        private static IEnumerable<ParseResult> selectedResults;
+        private static IEnumerable<TableParser.Result> selectedResults;
 
-        private static readonly Lazy<SortedSet<ParseResult>> lazyResultSet = new(CreateResultSet);
-        private static SortedSet<ParseResult> resultSet => lazyResultSet.Value;
+        private static readonly Lazy<SortedSet<TableParser.Result>> lazyResultSet =
+            new(CreateResultSet);
+        private static SortedSet<TableParser.Result> resultSet => lazyResultSet.Value;
 
         private static string resultPath => $"{Config.root}/Dist/ParseResult.json";
 
@@ -53,10 +53,10 @@ namespace ExcelDatabase.Editor.GUI
             ListTables();
         }
 
-        private static SortedSet<ParseResult> CreateResultSet()
+        private static SortedSet<TableParser.Result> CreateResultSet()
         {
             return File.Exists(resultPath)
-                ? JsonConvert.DeserializeObject<SortedSet<ParseResult>>(
+                ? JsonConvert.DeserializeObject<SortedSet<TableParser.Result>>(
                     File.ReadAllText(resultPath)
                 )
                 : new();
@@ -70,16 +70,16 @@ namespace ExcelDatabase.Editor.GUI
                 {
                     var result = type switch
                     {
-                        TableType.Convert => new ConvertParser(file).Parse(),
-                        TableType.Enum => new EnumParser(file).Parse(),
-                        TableType.Variable => new VariableParser(file).Parse(),
+                        TableType.Convert => TableParser.ParseConvert(file),
+                        TableType.Enum => TableParser.ParseEnum(file),
+                        TableType.Variable => TableParser.ParseVariable(file),
                         _ => throw new ArgumentOutOfRangeException()
                     };
 
                     resultSet.Add(result);
                     SyncResultSet();
                 }
-                catch (ParseException e)
+                catch (TableParser.Exception e)
                 {
                     Debug.LogError($"{e.tableName}: {e.Message}");
                 }
@@ -101,7 +101,7 @@ namespace ExcelDatabase.Editor.GUI
             }
         }
 
-        private static void RemoveTables(IEnumerable<ParseResult> tables)
+        private static void RemoveTables(IEnumerable<TableParser.Result> tables)
         {
             foreach (var table in tables)
             {
@@ -202,7 +202,7 @@ namespace ExcelDatabase.Editor.GUI
 
             void HandleSelectionChanged(IEnumerable<object> selection)
             {
-                selectedResults = selection.Cast<ParseResult>();
+                selectedResults = selection.Cast<TableParser.Result>();
                 var editButton = rootVisualElement.Q<Button>("edit-button");
                 editButton.SetEnabled(
                     selectedResults?.Count() == 1

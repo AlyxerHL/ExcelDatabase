@@ -10,7 +10,7 @@ using NPOI.XSSF.UserModel;
 using UnityEditor;
 using Object = UnityEngine.Object;
 
-namespace ExcelDatabase.Editor.Parser
+namespace ExcelDatabase.Editor.Parser.Convert
 {
     public class ConvertParser
     {
@@ -52,18 +52,18 @@ namespace ExcelDatabase.Editor.Parser
             var path = AssetDatabase.GetAssetPath(file);
             using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
             sheet = new XSSFWorkbook(stream).GetSheetAt(0);
-            tableName = ParseUtility.Format(file.name);
+            tableName = TableParser.Format(file.name);
             excelPath = AssetDatabase.GetAssetPath(file);
         }
 
-        public ParseResult Parse()
+        public Library.TableParser.Result Parse()
         {
             var ids = ValidateIDs();
             var cols = ValidateCols(ids);
             File.WriteAllText(Config.DistPath(tableName, TableType.Convert), BuildScript(cols));
             File.WriteAllText(Config.JsonPath(tableName), BuildJson(cols));
 
-            return new ParseResult(TableType.Convert, tableName, excelPath);
+            return new Library.TableParser.Result(TableType.Convert, tableName, excelPath);
         }
 
         private IEnumerable<string> ValidateIDs()
@@ -79,7 +79,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (!diffChecker.Add(id))
                 {
-                    throw new ParseException(tableName, $"Duplicate ID '{id}'");
+                    throw new Library.TableParser.Exception(tableName, $"Duplicate ID '{id}'");
                 }
 
                 yield return id;
@@ -92,7 +92,7 @@ namespace ExcelDatabase.Editor.Parser
             var typeRow = sheet.GetRow(TypeRow);
             if (nameRow?.GetCellValue(IDCol) != "ID" || typeRow?.GetCellValue(IDCol) != "string")
             {
-                throw new ParseException(tableName, "Invalid ID column");
+                throw new Library.TableParser.Exception(tableName, "Invalid ID column");
             }
 
             var diffChecker = new HashSet<string>();
@@ -111,7 +111,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (char.IsDigit(col.name, 0))
                 {
-                    throw new ParseException(
+                    throw new Library.TableParser.Exception(
                         tableName,
                         $"Column name '{col.name}' starts with a number"
                     );
@@ -119,17 +119,20 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (!diffChecker.Add(col.name))
                 {
-                    throw new ParseException(tableName, $"Duplicate column name '{col.name}'");
+                    throw new Library.TableParser.Exception(
+                        tableName,
+                        $"Duplicate column name '{col.name}'"
+                    );
                 }
 
                 switch (col.typeSpec)
                 {
                     case Col.TypeSpec.None:
                     case Col.TypeSpec.Primitive
-                        when !ParseUtility.typeValidators.ContainsKey(col.type):
+                        when !TableParser.typeValidators.ContainsKey(col.type):
                     case Col.TypeSpec.Convert when !TypeExists(col.type + "Type"):
                     case Col.TypeSpec.Enum when !TypeExists(col.type):
-                        throw new ParseException(
+                        throw new Library.TableParser.Exception(
                             tableName,
                             $"Type '{col.type}' of column '{col.name}' is invalid"
                         );
@@ -149,7 +152,7 @@ namespace ExcelDatabase.Editor.Parser
 
                     if (cell.Length == 0)
                     {
-                        throw new ParseException(
+                        throw new Library.TableParser.Exception(
                             tableName,
                             $"An empty cell exists in column '{col.name}' of '{id}'"
                         );
@@ -158,7 +161,7 @@ namespace ExcelDatabase.Editor.Parser
                     var cellValues = cell.Split(ArraySeparator);
                     if (!col.isArray && cellValues.Length > 1)
                     {
-                        throw new ParseException(
+                        throw new Library.TableParser.Exception(
                             tableName,
                             $"The cell in column '{col.name}' of '{id}' is array, "
                                 + "but its type is not an array"
@@ -168,11 +171,11 @@ namespace ExcelDatabase.Editor.Parser
                     if (
                         col.typeSpec == Col.TypeSpec.Primitive
                         && cellValues.Any(
-                            (cellValue) => !ParseUtility.typeValidators[col.type](cellValue)
+                            (cellValue) => !TableParser.typeValidators[col.type](cellValue)
                         )
                     )
                     {
-                        throw new ParseException(
+                        throw new Library.TableParser.Exception(
                             tableName,
                             $"The cell in column '{col.name}' of '{id}' type mismatch"
                         );
@@ -189,7 +192,7 @@ namespace ExcelDatabase.Editor.Parser
                             || cellValues.Any((cellValue) => !Enum.IsDefined(type, cellValue))
                         )
                         {
-                            throw new ParseException(
+                            throw new Library.TableParser.Exception(
                                 tableName,
                                 $"The cell in column '{col.name}' of '{id}' type mismatch"
                             );
@@ -272,12 +275,12 @@ namespace ExcelDatabase.Editor.Parser
 
             public Col(string name, string type)
             {
-                this.name = ParseUtility.Format(name);
-                this.type = ParseUtility.Format(type);
+                this.name = TableParser.Format(name);
+                this.type = TableParser.Format(type);
                 isArray = type.EndsWith("[]");
                 cells = new();
 
-                typeSpec = ParseUtility.typeValidators.ContainsKey(this.type) switch
+                typeSpec = TableParser.typeValidators.ContainsKey(this.type) switch
                 {
                     true => TypeSpec.Primitive,
                     false when this.type.StartsWith("Tb") => TypeSpec.Convert,

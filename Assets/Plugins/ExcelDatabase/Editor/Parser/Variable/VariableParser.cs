@@ -34,15 +34,15 @@ namespace ExcelDatabase.Editor.Parser
             var path = AssetDatabase.GetAssetPath(file);
             using var stream = File.Open(path, FileMode.Open, FileAccess.Read);
             sheet = new XSSFWorkbook(stream).GetSheetAt(0);
-            tableName = ParseUtility.Format(file.name);
+            tableName = TableParser.Format(file.name);
             excelPath = AssetDatabase.GetAssetPath(file);
         }
 
-        public ParseResult Parse()
+        public Library.TableParser.Result Parse()
         {
             var rows = ValidateRows();
             File.WriteAllText(Config.DistPath(tableName, TableType.Variable), BuildScript(rows));
-            return new ParseResult(TableType.Variable, tableName, excelPath);
+            return new Library.TableParser.Result(TableType.Variable, tableName, excelPath);
         }
 
         private IEnumerable<Row> ValidateRows()
@@ -54,7 +54,7 @@ namespace ExcelDatabase.Editor.Parser
                 || nameRow.GetCellValue(ValueCol) != "Value"
             )
             {
-                throw new ParseException(tableName, "Invalid column name");
+                throw new Library.TableParser.Exception(tableName, "Invalid column name");
             }
 
             var diffChecker = new HashSet<string>();
@@ -79,7 +79,7 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (char.IsDigit(row.name, 0))
                 {
-                    throw new ParseException(
+                    throw new Library.TableParser.Exception(
                         tableName,
                         $"Variable name '{row.name}' starts with a number"
                     );
@@ -87,17 +87,23 @@ namespace ExcelDatabase.Editor.Parser
 
                 if (!diffChecker.Add(row.name))
                 {
-                    throw new ParseException(tableName, $"Duplicate variable name '{row.name}'");
+                    throw new Library.TableParser.Exception(
+                        tableName,
+                        $"Duplicate variable name '{row.name}'"
+                    );
                 }
 
-                if (!ParseUtility.typeValidators.ContainsKey(row.type))
+                if (!TableParser.typeValidators.ContainsKey(row.type))
                 {
-                    throw new ParseException(tableName, $"Invalid variable type '{row.type}'");
+                    throw new Library.TableParser.Exception(
+                        tableName,
+                        $"Invalid variable type '{row.type}'"
+                    );
                 }
 
-                if (!ParseUtility.typeValidators[row.type](row.value))
+                if (!TableParser.typeValidators[row.type](row.value))
                 {
-                    throw new ParseException(
+                    throw new Library.TableParser.Exception(
                         tableName,
                         $"Variable value '{row.value}' is not of variable type '{row.type}'"
                     );
@@ -142,7 +148,7 @@ namespace ExcelDatabase.Editor.Parser
 
             public Row(string name, string type, string value)
             {
-                this.name = ParseUtility.Format(name);
+                this.name = TableParser.Format(name);
                 this.type = type;
                 this.value = value;
             }
